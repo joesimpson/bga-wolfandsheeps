@@ -51,22 +51,77 @@
 
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
+*/
 
-    .white_token {
-        background-image: url('img/tokens.png');
-        background-position: 0px 0px;
-    }
-    .black_token {
-        background-image: url('img/tokens.png');
-        background-position: -20px 0px;
-    }
-    .token {
-        width: 20px;
-        height: 20px;
-        background-repeat: none;
-    }
+
+/**
+ prefix IDENTIFIER for this game : "wsh"
 */
 
 
 
+/* WHITE */
+.wsh_token_ffffff{
+   background-position: 000% 000%;
+}
 
+/* BLACK */
+.wsh_token_000000{	
+   background-position: 100% 000%;
+}
+
+.wsh_token{	
+   width: 62px;
+   height: 62px;
+   position: absolute;
+   background-image: url('img/tokens.png');
+   background-size: 200% 100%;
+}
+
+
+#wsh_game_zone {
+    text-align: center
+}
+ 
+#wsh_board {
+    border: 8px outset #630;
+    display: inline-block;
+    margin: 20px 1% 1%;
+    position: relative
+}
+ 
+.wsh_board_size_8 {
+    height: 496px;
+    width: 496px
+}
+
+.wsh_cell_holder {
+    background-image: url(img/cells.jpg);
+    background-size: 124px 124px
+}
+
+.wsh_cell,.wsh_cell_holder {
+    height: 62px;
+    position: absolute;
+    width: 62px
+}
+
+.wsh_cell_dark {
+    background-position: -62px 0
+}
+
+.wsh_cell_light {
+    background-position: 0 0
+}
+
+.wsh_clickable:hover {
+    cursor: pointer
+}
+
+.wsh_coordinate {
+    color: #000;
+    font-family: Arial,Verdana;
+    font-size: 13px;
+    font-weight: 400;
+    position: absolute
+}
