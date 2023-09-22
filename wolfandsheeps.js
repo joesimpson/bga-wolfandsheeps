@@ -46,7 +46,7 @@ function (dojo, declare) {
         
         setup: function( gamedatas )
         {
-            console.log( "Starting game setup" );
+            console.log( "Starting game setup",gamedatas );
             
             // Setting up player boards
             for( var player_id in gamedatas.players )
@@ -57,6 +57,31 @@ function (dojo, declare) {
             }
             
             // TODO: Set up your game interface here, according to "gamedatas"
+            
+            for( let i in gamedatas.board ){
+                let token = gamedatas.board[i];
+                let row = token.coord_row -1;
+                let col = "ABCDEFGHIJ".indexOf(token.coord_col);
+                let divPlace = "cell_"+col+"_"+row;
+                if($(divPlace) == null){
+                    console.log( "Cannot place token on not found cell ",divPlace, token );
+                    return null;
+                }
+            
+                dojo.place(  
+                    this.format_block(
+                        'jstpl_wsh_token',
+                        {
+                            T_ID : token.key,
+                            T_COLOR : token.color,
+                            T_ROW : row,
+                            T_COLUMN: col,
+                        }
+                    ),
+                    divPlace
+                );
+            }
+            
             
  
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -255,3 +280,4 @@ function (dojo, declare) {
         */
    });             
 });
+//# sourceURL=wolfandsheeps.js

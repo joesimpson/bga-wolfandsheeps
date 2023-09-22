@@ -74,7 +74,7 @@ class WolfAndSheeps extends Table
         }
         $sql .= implode( ',', $values );
         self::DbQuery( $sql );
-        self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
+        if ($gameinfos['favorite_colors_support']) self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
         self::reloadPlayersBasicInfos();
         
         /************ Start the game initialization *****/
@@ -87,8 +87,8 @@ class WolfAndSheeps extends Table
         //self::initStat( 'table', 'table_teststat1', 0 );    // Init a table statistics
         //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
 
-        // TODO: setup the initial game situation here
-       
+        // setup the initial game situation here
+        $this->initTables();
 
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -117,6 +117,12 @@ class WolfAndSheeps extends Table
         $result['players'] = self::getCollectionFromDb( $sql );
   
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        
+        $result['board'] = self::getObjectListFromDB( "SELECT token_key 'key', token_location location, token_state state, 
+                                                        SUBSTRING(token_key FROM 3 FOR 6) color,
+                                                        SUBSTRING(token_location FROM 1 FOR 1) coord_col,
+                                                        SUBSTRING(token_location FROM 2 FOR 1) coord_row 
+                                                        FROM token " );
   
         return $result;
     }
@@ -146,7 +152,33 @@ class WolfAndSheeps extends Table
     /*
         In this space, you can put any utility methods useful for your game logic
     */
-
+    
+    /**
+    Init DataBase
+    */
+    function initTables(){
+        try {
+            $players = $this->loadPlayersBasicInfos();
+            
+            // INIT Board with tokens starting positions : no other tokens will be used in the game
+            $sql = "INSERT INTO token (token_key,token_location,token_state) VALUES ";
+            $sql_values = array();
+                $sql_values[] = "('t_ffffff_1','E1',0)";
+                $sql_values[] = "('t_000000_1','B8',0)";
+                $sql_values[] = "('t_000000_2','D8',0)";
+                $sql_values[] = "('t_000000_3','F8',0)";
+                $sql_values[] = "('t_000000_4','H8',0)";
+            $sql .= implode( $sql_values, ',' );
+            self::DbQuery( $sql );
+        
+        } catch ( Exception $e ) {
+            // logging does not actually work in game init :(
+            // but if you calling from php chat it will work
+            $this->error("Fatal error while creating game");
+            $this->dump('err', $e);
+        }
+        
+    }
 
 
 //////////////////////////////////////////////////////////////////////////////
