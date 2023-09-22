@@ -180,7 +180,16 @@ class WolfAndSheeps extends Table
         
     }
 
-
+    // Get the list of possible moves
+    function getPossibleMoves( $player_id )
+    {
+        $result = array();
+        
+            //TODO JSA compute getPossibleMoves
+            $result = array( "E1" =>  array("D2","F2"), "B8" =>  array("A7","C7"), );  
+            
+        return $result;
+    }
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 //////////// 
@@ -252,19 +261,26 @@ class WolfAndSheeps extends Table
         Here, you can create methods defined as "game state actions" (see "action" property in states.inc.php).
         The action method of state X is called everytime the current game state is set to X.
     */
-    
-    /*
-    
-    Example for game state "MyGameState":
 
-    function stMyGameState()
+    function stNextPlayer()
     {
-        // Do some stuff ...
-        
-        // (very often) go to another gamestate
-        $this->gamestate->nextState( 'some_gamestate_transition' );
-    }    
-    */
+        // Active next player
+        $player_id = self::activeNextPlayer();
+
+        // Can this player play?
+        $possibleMoves = self::getPossibleMoves( $player_id );
+        if( count( $possibleMoves ) == 0 )
+        {
+            // This player can't play   => end of the game
+            $this->gamestate->nextState( 'endGame' );
+        }
+        else
+        {
+            // This player can play. Give him some extra time
+            self::giveExtraTime( $player_id );
+            $this->gamestate->nextState( 'nextTurn' );
+        }
+    }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Zombie
