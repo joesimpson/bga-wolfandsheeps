@@ -28,7 +28,9 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
-
+            this.allPossibleMoves = [];
+            this.displayedPossibleMovesOrigin = null;
+            this.onSelectMoveOriginHandler = [];
         },
         
         /*
@@ -76,14 +78,13 @@ function (dojo, declare) {
                             T_COLOR : token.color,
                             T_ROW : row,
                             T_COLUMN: col,
+                            T_LOCATION : token.location,
                         }
                     ),
                     divPlace
                 );
             }
             
-            
- 
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -103,21 +104,12 @@ function (dojo, declare) {
             
             switch( stateName )
             {
-            
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Show some HTML block at this game state
-                dojo.style( 'my_html_block_id', 'display', 'block' );
-                
-                break;
-           */
-           
-           
-            case 'dummmy':
+            case 'playerTurn':
+                console.log( 'possibleMoves: ',args.args.possibleMoves );
+                this.updatePossibleMoves( args.args.possibleMoves );
                 break;
             }
+           
         },
 
         // onLeavingState: this method is called each time we are leaving a game state.
@@ -129,19 +121,8 @@ function (dojo, declare) {
             
             switch( stateName )
             {
-            
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Hide the HTML block we are displaying only during this game state
-                dojo.style( 'my_html_block_id', 'display', 'none' );
-                
-                break;
-           */
-           
-           
-            case 'dummmy':
+            case 'playerTurn':
+                for(let i in this.onSelectMoveOriginHandler) dojo.disconnect(this.onSelectMoveOriginHandler[i]);
                 break;
             }               
         }, 
@@ -184,6 +165,48 @@ function (dojo, declare) {
         */
 
 
+        ajaxcallwrapper: function(action, args, handler) {
+            if (!args) {
+                args = {};
+            }
+            args.lock = true;
+
+            if (this.checkAction(action)) {
+                this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, (result) => { }, handler);
+            }
+        },
+        
+        updatePossibleMoves: function( possibleMoves )
+        {
+            // Remove current possible moves
+            dojo.query( '.wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFromHere' );
+            this.disconnect( $('.wsh_possibleMoveTo'), 'click');
+            dojo.query( '.wsh_possibleMoveTo' ).removeClass( 'wsh_possibleMoveTo' ) ;
+            
+            this.allPossibleMoves = possibleMoves;
+            
+            for( let origin in possibleMoves )
+            {
+                let moves = possibleMoves[origin];
+                /*
+                let divPlace = "cell_"+origin;
+                if($(divPlace) == null){
+                    console.log( "Cannot place possibleMove on not found cell ",divPlace, origin );
+                    return null;
+                }
+                */
+                let nodes = dojo.query(".wsh_token[data_location='"+origin+"']");
+                let node = nodes[0];
+                if(node !=undefined  ) {
+                    dojo.addClass( node.id , 'wsh_possibleMoveFrom' ); 
+                    this.onSelectMoveOriginHandler[origin] = dojo.connect(node, 'onclick', this, 'onSelectMoveOrigin' );
+                }
+            }
+            
+            this.addTooltipToClass( 'wsh_possibleMoveFrom', '', _('You can move from this place') );
+            
+        },
+        
         ///////////////////////////////////////////////////
         //// Player's action
         
@@ -197,40 +220,78 @@ function (dojo, declare) {
             _ make a call to the game server
         
         */
-        
-        /* Example:
-        
-        onMyMethodToCall1: function( evt )
+        onPlayToken: function( evt )
         {
-            console.log( 'onMyMethodToCall1' );
-            
-            // Preventing default browser reaction
+            console.log("onPlayToken",evt);
+            // Stop this event propagation
+            evt.preventDefault();
             dojo.stopEvent( evt );
 
-            // Check that this action is possible (see "possibleactions" in states.inc.php)
-            if( ! this.checkAction( 'myAction' ) )
-            {   return; }
+            let token_id = evt.currentTarget.getAttribute("data_token_id") ;
+            let dest= evt.currentTarget.getAttribute("data_location") ;
 
-            this.ajaxcall( "/wolfandsheeps/wolfandsheeps/myAction.html", { 
-                                                                    lock: true, 
-                                                                    myArgument1: arg1, 
-                                                                    myArgument2: arg2,
-                                                                    ...
-                                                                 }, 
-                         this, function( result ) {
-                            
-                            // What to do after the server call if it succeeded
-                            // (most of the time: nothing)
-                            
-                         }, function( is_error) {
-
-                            // What to do after the server call in anyway (success or failure)
-                            // (most of the time: nothing)
-
-                         } );        
-        },        
+            if( ! dojo.hasClass( evt.currentTarget.id, 'wsh_possibleMoveTo' ) )
+            {
+                // This is not a possible move => the click does nothing
+                return ;
+            }
+            
+            this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );            
+        },
         
+        
+        /**
+        Toggle display of possible moves from this place
         */
+        onSelectMoveOrigin: function( evt )
+        {
+            console.log("onSelectMoveOrigin",evt);
+            // Stop this event propagation
+            evt.preventDefault();
+            dojo.stopEvent( evt );
+            
+            dojo.query( '.wsh_possibleMoveFromHere' ).removeClass( 'wsh_possibleMoveFromHere' );
+            
+            let origin= evt.currentTarget.getAttribute("data_location") ;
+            let token_id = evt.currentTarget.id;
+            if( ! dojo.hasClass( token_id, 'wsh_possibleMoveFrom' ) )
+            {
+                // This is not a possible move => the click does nothing
+                return ;
+            }
+            
+            let displayedMoves = dojo.query( '.wsh_possibleMoveTo' );
+            this.disconnect(displayedMoves, 'click');
+            displayedMoves.removeClass( 'wsh_possibleMoveTo' ); 
+            if(this.displayedPossibleMovesOrigin == origin ){
+                //IF ALREADY DISPLAYED , hide
+                this.displayedPossibleMovesOrigin = null;
+                console.log("onSelectMoveOrigin() => Hide :",origin);
+                return;
+            } //ELSE continue to SHOW
+            
+            dojo.addClass( token_id,'wsh_possibleMoveFromHere' ); 
+            
+            this.displayedPossibleMovesOrigin = origin;
+            let moves = this.allPossibleMoves[origin];
+            for( let i in moves )
+            {
+                let target = moves[i];
+                let targetId = "cell_"+target;
+                if($(targetId) == null){
+                    console.log( "Cannot place move on not found cell ",targetId, target );
+                    continue;
+                }
+                dojo.addClass( targetId , 'wsh_possibleMoveTo' ); 
+                dojo.attr(targetId, "data_token_id", token_id);
+                
+                this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
+            }
+            
+            dojo.query( '.wsh_possibleMoveTo' ).connect( 'onclick', this, 'onPlayToken' );
+            
+            console.log("onSelectMoveOrigin() => moves :",moves);
+        },
 
         
         ///////////////////////////////////////////////////
@@ -260,24 +321,18 @@ function (dojo, declare) {
             // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
             // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
             // 
+            
+            dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
         
-        /*
-        Example:
-        
-        notif_cardPlayed: function( notif )
+        notif_tokenPlayed: function( notif )
         {
-            console.log( 'notif_cardPlayed' );
-            console.log( notif );
+            console.log( 'notif_tokenPlayed', notif );
             
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-            
-            // TODO: play the card in the user interface.
+            //TODO JSA display notif.arg.moves
         },    
-        
-        */
    });             
 });
 //# sourceURL=wolfandsheeps.js

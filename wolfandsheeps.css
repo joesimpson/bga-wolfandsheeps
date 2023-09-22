@@ -114,8 +114,32 @@
     background-position: 0 0
 }
 
-.wsh_clickable:hover {
-    cursor: pointer
+.wsh_possibleMoveFrom:hover {
+    transform: scale(1.1);
+}
+.wsh_possibleMoveFrom{
+    cursor: pointer;
+    border-radius: 100%;
+    outline: 5px dashed yellow;
+    -webkit-animation: wsh_rotate 12s linear infinite;
+    /** To se outline rotating outside cell */
+    z-index: 1;
+}
+.wsh_possibleMoveFromHere{
+    outline-style: solid;
+}
+.wsh_possibleMoveTo{ 
+    border-radius: 100%;
+    cursor: pointer;
+    outline: 4px solid lightblue;
+    width: 80%;
+    height: 80%;
+    margin: 10%;
+}
+
+@-webkit-keyframes wsh_rotate {
+  from{ -webkit-transform: rotate(0deg);   }
+  to{   -webkit-transform: rotate(360deg); }
 }
 
 .wsh_coordinate {

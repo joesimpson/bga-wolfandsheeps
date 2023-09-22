@@ -180,13 +180,46 @@ class WolfAndSheeps extends Table
         
     }
 
+    function dbGetToken($token_key){
+        
+        $sql = "SELECT token_key 'key', token_location location, token_state state, 
+                    SUBSTRING(token_key FROM 3 FOR 6) color,
+                    SUBSTRING(token_location FROM 1 FOR 1) coord_col,
+                    SUBSTRING(token_location FROM 2 FOR 1) coord_row 
+                FROM token 
+                WHERE token_key='$token_key'" ;
+                
+        return self::getObjectFromDB( $sql ); 
+    }
+
     // Get the list of possible moves
     function getPossibleMoves( $player_id )
     {
         $result = array();
         
-            //TODO JSA compute getPossibleMoves
-            $result = array( "E1" =>  array("D2","F2"), "B8" =>  array("A7","C7"), );  
+            //TODO JSA compute getPossibleMoves LOOP ON player TOKENS
+            $result = array( 
+            "E1" =>  array("D2","F2"), 
+            "B8" =>  array("A7","C7"), 
+            "H8" =>  array("G7") , 
+            );  
+            
+        return $result;
+    }
+    
+    /**
+    Get the list of possible moves for this token 
+    */
+    function getPossibleMovesForToken( $tokenId )
+    {
+        $result = array();
+        
+        $token = self::dbGetToken($tokenId); 
+        if(! $token) throw new BgaVisibleSystemException( ("Unknown token"));
+    
+        //TODO JSA compute getPossibleMovesForToken
+        $this->dump('getPossibleMovesForToken() :', $token);
+        $result = array( $token['location'] =>  array("D2","F2","D4","F4") );  
             
         return $result;
     }
@@ -199,31 +232,34 @@ class WolfAndSheeps extends Table
         (note: each method below must match an input method in wolfandsheeps.action.php)
     */
 
-    /*
     
-    Example:
-
-    function playCard( $card_id )
+    /**
+      Player choose a token and wants to move it to "dest"
+    */
+    public function playToken($tokenId, $dest)
     {
-        // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-        self::checkAction( 'playCard' ); 
-        
         $player_id = self::getActivePlayerId();
         
-        // Add your game logic to play a card there 
-        ...
+        //TODO JSA MOVE PIECE  
+        $token = $this->dbGetToken($tokenId);
+        
+        $token_origin = $token['location'];
         
         // Notify all players about the card played
-        self::notifyAllPlayers( "cardPlayed", clienttranslate( '${player_name} plays ${card_name}' ), array(
+        self::notifyPlayer( $player_id, "tokenPlayed", clienttranslate( '${player_name} moves from ${origin} to ${dest}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'card_name' => $card_name,
-            'card_id' => $card_id
+            'tokenId' => $tokenId,
+            'origin' => $token_origin, 
+            'dest' => $dest,
         ) );
           
+          
+        //----------------------------------------------------------------------------
+        // Then, go to the next state
+        $this->gamestate->nextState( 'moveToken' );
     }
-    
-    */
+
 
     
 //////////////////////////////////////////////////////////////////////////////
@@ -252,6 +288,13 @@ class WolfAndSheeps extends Table
         );
     }    
     */
+    
+    function argPlayerTurn(){
+        $player_id = self::getActivePlayerId();
+        self::trace("argPlayerTurn() : ".($player_id));        
+        return array( 'possibleMoves' => self::getPossibleMoves($player_id),
+        );
+    }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state actions

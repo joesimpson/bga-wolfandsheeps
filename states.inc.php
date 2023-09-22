@@ -62,12 +62,13 @@ $machinestates = array(
     ),
     
     10 => array(
-    		"name" => "playerTurn",
-    		"description" => clienttranslate('${actplayer} must move a token'),
-    		"descriptionmyturn" => clienttranslate('${you} must move a token'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "moveToken" ),
-    		"transitions" => array( "moveToken" => 11 )
+        "name" => "playerTurn",
+        "description" => clienttranslate('${actplayer} must move a token'),
+        "descriptionmyturn" => clienttranslate('${you} must move a token'),
+        "type" => "activeplayer",
+        "args" => "argPlayerTurn",
+        "possibleactions" => array( "playToken" ),
+        "transitions" => array( "moveToken" => 11 )
     ),
     
     11 => array(

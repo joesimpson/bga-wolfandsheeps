@@ -39,8 +39,8 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 186px; left: 0px;">
+            <div class="wsh_coordinate wsh_row_number" style="display:block; left:-20px; top:22px;">4</div>
 			<div id="cell_0_3" class="wsh_cell">
-				<div class="wsh_coordinate wsh_row_number" style="display:block; left:-20px; top:22px;">4</div>
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 248px; left: 0px;">
@@ -54,8 +54,8 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 372px; left: 0px;">
-			<div id="cell_0_6" class="wsh_cell">
-				<div class="wsh_coordinate wsh_row_number" style="display:block; left:-20px; top:22px;">7</div>
+			<div class="wsh_coordinate wsh_row_number" style="display:block; left:-20px; top:22px;">7</div>
+			<div id="cell_A7" class="wsh_cell" data_location="A7">
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 434px; left: 0px;">
@@ -124,7 +124,8 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 372px; left: 124px;">
-			<div id="cell_2_6" class="wsh_cell">
+			<div id="cell_C7" class="wsh_cell" data_location="C7">
+            <!-- TODO JSA rework cells id and add data_location -->
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 434px; left: 124px;">
@@ -260,7 +261,7 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 372px; left: 372px;">
-			<div id="cell_6_6" class="wsh_cell">
+			<div id="cell_G7" class="wsh_cell" data_location="G7">
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 434px; left: 372px;">
@@ -319,7 +320,7 @@
 
 // Javascript HTML templates
 
-var jstpl_wsh_token='<div id="${T_ID}" class="wsh_clickable wsh_token wsh_token_${T_COLOR} " data_row="${T_ROW}" data_col="${T_COLUMN}"></div>';
+var jstpl_wsh_token='<div id="${T_ID}" class="wsh_token wsh_token_${T_COLOR} " data_row="${T_ROW}" data_col="${T_COLUMN}" data_location="${T_LOCATION}"></div>';
 
 </script>  
 
