@@ -404,6 +404,9 @@ function (dojo, declare) {
             let anim = this.slideToObject(tokenDivId,destinationDivId,1000);
             dojo.connect(anim, 'onEnd', function(node){
                 dojo.attr(node, "data_location", destination);
+                //To avoid offset of some px calculated after sliding:
+                dojo.style(node,"left","0");
+                dojo.style(node,"top","0");
             });
             anim.play();
             this.updateLastMove(tokenId);
