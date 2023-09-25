@@ -23,6 +23,8 @@ const COLUMNS_LETTERS ="ABCDEFGHIJ";
 const SHEEP_COLOR = "ffffff";//WHITE
 const WOLF_COLOR = "000000";//BLACK
 
+const TOKEN_STATE_MOVED = 1;
+
 class WolfAndSheeps extends Table
 {
 	function __construct( )
@@ -121,11 +123,7 @@ class WolfAndSheeps extends Table
   
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
         
-        $result['board'] = self::getObjectListFromDB( "SELECT token_key 'key', token_location location, token_state state, 
-                                                        SUBSTRING(token_key FROM 3 FOR 6) color,
-                                                        SUBSTRING(token_location FROM 1 FOR 1) coord_col,
-                                                        SUBSTRING(token_location FROM 2 FOR 1) coord_row 
-                                                        FROM token " );
+        $result['board'] = self::getObjectListFromDB(   self::getSQLSelectTOKEN() );
   
         return $result;
     }
@@ -183,15 +181,15 @@ class WolfAndSheeps extends Table
         
     }
 
-    function dbGetToken($token_key){
-        
-        $sql = "SELECT token_key 'key', token_location location, token_state state, 
+    //////////// Database Utility functions - BEGIN -----------------------------------
+    function getSQLSelectTOKEN() { return "SELECT token_key 'key', token_location location, token_state state, 
                     SUBSTRING(token_key FROM 3 FOR 6) color,
                     SUBSTRING(token_location FROM 1 FOR 1) coord_col,
                     SUBSTRING(token_location FROM 2 FOR 1) coord_row 
-                FROM token 
-                WHERE token_key='$token_key'" ;
-                
+                FROM token ";
+    }
+    function dbGetToken($token_key){
+        $sql = self::getSQLSelectTOKEN()." WHERE token_key='$token_key'" ;
         return self::getObjectFromDB( $sql ); 
     }
     
@@ -199,16 +197,15 @@ class WolfAndSheeps extends Table
     return all tokens of this color
     */
     function dbGetPlayerTokens($player_color){
-        //TODO JSA FACTORIZE SELECT
-        $sql = "SELECT * FROM (SELECT token_key 'key', token_location location, token_state state, 
-                    SUBSTRING(token_key FROM 3 FOR 6) color,
-                    SUBSTRING(token_location FROM 1 FOR 1) coord_col,
-                    SUBSTRING(token_location FROM 2 FOR 1) coord_row 
-                FROM token  ) subquery
-                WHERE color = '$player_color'" ;
-                
+        $sql = "SELECT * FROM (".self::getSQLSelectTOKEN().") subquery WHERE color = '$player_color'" ;
         return self::getObjectListFromDB( $sql ); 
     }
+    
+    function dbUpdateTokenLocation($tokenId,$dest){
+        $newState = TOKEN_STATE_MOVED;
+        self::DbQuery("UPDATE token SET token_location='$dest', token_state='$newState' WHERE token_key = '$tokenId' ");
+    }
+    //////////// Database Utility functions - END -----------------------------------
 
     /* Get the list of possible moves
     Example Format for 3 wolves (black) tokens : 
@@ -301,8 +298,8 @@ class WolfAndSheeps extends Table
     {
         $player_id = self::getActivePlayerId();
         
-        //TODO JSA MOVE PIECE  
         $token = $this->dbGetToken($tokenId);
+        $this->dbUpdateTokenLocation($tokenId,$dest);
         
         $token_origin = $token['location'];
         

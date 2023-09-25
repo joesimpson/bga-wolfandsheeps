@@ -62,12 +62,13 @@ function (dojo, declare) {
             
             for( let i in gamedatas.board ){
                 let token = gamedatas.board[i];
+                let coord = token.location;
                 let row = token.coord_row -1;
                 let col = "ABCDEFGHIJ".indexOf(token.coord_col);
-                let divPlace = "cell_"+col+"_"+row;
+                let divPlace = "cell_"+coord;
                 if($(divPlace) == null){
                     console.log( "Cannot place token on not found cell ",divPlace, token );
-                    return null;
+                    continue;
                 }
             
                 dojo.place(  
@@ -78,7 +79,7 @@ function (dojo, declare) {
                             T_COLOR : token.color,
                             T_ROW : row,
                             T_COLUMN: col,
-                            T_LOCATION : token.location,
+                            T_LOCATION : coord,
                         }
                     ),
                     divPlace
@@ -239,7 +240,9 @@ function (dojo, declare) {
             dojo.stopEvent( evt );
 
             let token_id = evt.currentTarget.getAttribute("data_token_id") ;
-            let dest= evt.currentTarget.getAttribute("data_location") ;
+            //let dest= evt.currentTarget.getAttribute("data_location") ;
+            //Now it's in cell id "cell_D5"
+            let dest= evt.currentTarget.id.split("_")[1];
 
             if( ! dojo.hasClass( evt.currentTarget.id, 'wsh_possibleMoveTo' ) )
             {
