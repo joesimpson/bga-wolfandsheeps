@@ -30,7 +30,7 @@ function (dojo, declare) {
             // this.myGlobalValue = 0;
             this.allPossibleMoves = [];
             this.displayedPossibleMovesOrigin = null;
-            this.onSelectMoveOriginHandler = [];
+            //this.onSelectMoveOriginHandler = [];
         },
         
         /*
@@ -83,7 +83,10 @@ function (dojo, declare) {
                     ),
                     divPlace
                 );
+                
             }
+            dojo.query( '.wsh_token' ).connect( 'onclick', this, 'onSelectMoveOrigin' );
+            dojo.query( '.wsh_cell' ).connect( 'onclick', this, 'onPlayToken' );
             
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -106,7 +109,9 @@ function (dojo, declare) {
             {
             case 'playerTurn':
                 console.log( 'possibleMoves: ',args.args.possibleMoves );
-                this.updatePossibleMoves( args.args.possibleMoves );
+                if(args.active_player == this.player_id){
+                    this.updatePossibleMoves( args.args.possibleMoves );
+                }
                 break;
             }
            
@@ -122,7 +127,8 @@ function (dojo, declare) {
             switch( stateName )
             {
             case 'playerTurn':
-                for(let i in this.onSelectMoveOriginHandler) dojo.disconnect(this.onSelectMoveOriginHandler[i]);
+                //for(let i in this.onSelectMoveOriginHandler) dojo.disconnect(this.onSelectMoveOriginHandler[i]);
+                this.updatePossibleMoves( [] );
                 break;
             }               
         }, 
@@ -180,8 +186,12 @@ function (dojo, declare) {
         {
             // Remove current possible moves
             dojo.query( '.wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFromHere' );
-            this.disconnect( $('.wsh_possibleMoveTo'), 'click');
+            //this.disconnect( $('.wsh_possibleMoveTo'), 'click');
             dojo.query( '.wsh_possibleMoveTo' ).removeClass( 'wsh_possibleMoveTo' ) ;
+            dojo.query(".wsh_token" ).forEach(  (node)=> { 
+                this.removeTooltip(node.id);
+                //?? dojo.disconnect(node, 'click');
+            })  ; 
             
             this.allPossibleMoves = possibleMoves;
             
@@ -199,11 +209,12 @@ function (dojo, declare) {
                 let node = nodes[0];
                 if(node !=undefined  ) {
                     dojo.addClass( node.id , 'wsh_possibleMoveFrom' ); 
-                    this.onSelectMoveOriginHandler[origin] = dojo.connect(node, 'onclick', this, 'onSelectMoveOrigin' );
+                    //this.onSelectMoveOriginHandler[origin] = dojo.connect(node, 'onclick', this, 'onSelectMoveOrigin' );
                 }
             }
             
-            this.addTooltipToClass( 'wsh_possibleMoveFrom', '', _('You can move from this place') );
+            //TODO JSA see how to display this tooltip without adding a "click" event listener...
+            //this.addTooltipToClass( 'wsh_possibleMoveFrom', '', _('You can move from this place') );
             
         },
         
@@ -261,7 +272,7 @@ function (dojo, declare) {
             }
             
             let displayedMoves = dojo.query( '.wsh_possibleMoveTo' );
-            this.disconnect(displayedMoves, 'click');
+            //this.disconnect(displayedMoves, 'click');
             displayedMoves.removeClass( 'wsh_possibleMoveTo' ); 
             if(this.displayedPossibleMovesOrigin == origin ){
                 //IF ALREADY DISPLAYED , hide
@@ -285,10 +296,10 @@ function (dojo, declare) {
                 dojo.addClass( targetId , 'wsh_possibleMoveTo' ); 
                 dojo.attr(targetId, "data_token_id", token_id);
                 
-                this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
+                
+                //TODO JSA see how to display this tooltip without adding a "click" event listener...
+                //this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
             }
-            
-            dojo.query( '.wsh_possibleMoveTo' ).connect( 'onclick', this, 'onPlayToken' );
             
             console.log("onSelectMoveOrigin() => moves :",moves);
         },

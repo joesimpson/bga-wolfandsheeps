@@ -245,8 +245,8 @@ class WolfAndSheeps extends Table
         
         $token_origin = $token['location'];
         
-        // Notify all players about the card played
-        self::notifyPlayer( $player_id, "tokenPlayed", clienttranslate( '${player_name} moves from ${origin} to ${dest}' ), array(
+        // Notify all players about the token played
+        self::notifyAllPlayers( "tokenPlayed", clienttranslate( '${player_name} moves from ${origin} to ${dest}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'tokenId' => $tokenId,
