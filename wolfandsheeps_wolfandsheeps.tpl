@@ -139,7 +139,7 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 62px; left: 186px;">
-			<div id="cell_3_1" class="wsh_cell">
+			<div id="cell_D2" class="wsh_cell" data_location="D2">
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 124px; left: 186px;">
@@ -147,7 +147,7 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 186px; left: 186px;">
-			<div id="cell_3_3" class="wsh_cell">
+			<div id="cell_D4" class="wsh_cell" data_location="D4">
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 248px; left: 186px;">
@@ -207,7 +207,7 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 62px; left: 310px;">
-			<div id="cell_5_1" class="wsh_cell">
+			<div id="cell_F2" class="wsh_cell" data_location="F2">
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 124px; left: 310px;">
@@ -215,7 +215,7 @@
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_dark" style="top: 186px; left: 310px;">
-			<div id="cell_5_3" class="wsh_cell">
+			<div id="cell_F4" class="wsh_cell" data_location="F4">
 			</div>
 		</div>
 		<div class="wsh_cell_holder wsh_cell_light" style="top: 248px; left: 310px;">

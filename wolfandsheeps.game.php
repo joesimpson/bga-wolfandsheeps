@@ -19,6 +19,9 @@
 
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
+const COLUMNS_LETTERS ="ABCDEFGHIJ";
+const SHEEP_COLOR = "ffffff";//WHITE
+const WOLF_COLOR = "000000";//BLACK
 
 class WolfAndSheeps extends Table
 {
@@ -163,11 +166,11 @@ class WolfAndSheeps extends Table
             // INIT Board with tokens starting positions : no other tokens will be used in the game
             $sql = "INSERT INTO token (token_key,token_location,token_state) VALUES ";
             $sql_values = array();
-                $sql_values[] = "('t_ffffff_1','E1',0)";
-                $sql_values[] = "('t_000000_1','B8',0)";
-                $sql_values[] = "('t_000000_2','D8',0)";
-                $sql_values[] = "('t_000000_3','F8',0)";
-                $sql_values[] = "('t_000000_4','H8',0)";
+                $sql_values[] = "('t_".SHEEP_COLOR."_1','E1',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_1','B8',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_2','D8',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_3','F8',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_4','H8',0)";
             $sql .= implode( $sql_values, ',' );
             self::DbQuery( $sql );
         
@@ -191,24 +194,52 @@ class WolfAndSheeps extends Table
                 
         return self::getObjectFromDB( $sql ); 
     }
+    
+    /**
+    return all tokens of this color
+    */
+    function dbGetPlayerTokens($player_color){
+        //TODO JSA FACTORIZE SELECT
+        $sql = "SELECT * FROM (SELECT token_key 'key', token_location location, token_state state, 
+                    SUBSTRING(token_key FROM 3 FOR 6) color,
+                    SUBSTRING(token_location FROM 1 FOR 1) coord_col,
+                    SUBSTRING(token_location FROM 2 FOR 1) coord_row 
+                FROM token  ) subquery
+                WHERE color = '$player_color'" ;
+                
+        return self::getObjectListFromDB( $sql ); 
+    }
 
-    // Get the list of possible moves
+    /* Get the list of possible moves
+    Example Format for 3 wolves (black) tokens : 
+     array( 
+        "E1" =>  array("D2","F2"), 
+        "B8" =>  array("A7","C7"), 
+        "H8" =>  array("G7") , 
+        );  
+    */
     function getPossibleMoves( $player_id )
     {
         $result = array();
+    
+        //  LOOP ON player TOKENS
+        $color = self::getPlayerColorById( $player_id );
+        $tokens = $this->dbGetPlayerTokens($color );
+        $this->dump("getPossibleMoves($player_id ) color $color:", $tokens);
         
-            //TODO JSA compute getPossibleMoves LOOP ON player TOKENS
-            $result = array( 
-            "E1" =>  array("D2","F2"), 
-            "B8" =>  array("A7","C7"), 
-            "H8" =>  array("G7") , 
-            );  
-            
+        foreach( $tokens as $token){
+            $origin = $token['location'];
+            $token_id = $token['key'];
+            $result[$origin] = $this->getPossibleMovesForToken($token_id);
+        }
         return $result;
     }
     
     /**
-    Get the list of possible moves for this token 
+    Get the list of possible moves for this token.
+    
+    Example format when the sheep (white) is in E3 : 
+        array("D2","F2","D4","F4") ; 
     */
     function getPossibleMovesForToken( $tokenId )
     {
@@ -217,12 +248,42 @@ class WolfAndSheeps extends Table
         $token = self::dbGetToken($tokenId); 
         if(! $token) throw new BgaVisibleSystemException( ("Unknown token"));
     
-        //TODO JSA compute getPossibleMovesForToken
+        $token_location = $token['location'];
+        $token_color = $token['color'];
         $this->dump('getPossibleMovesForToken() :', $token);
-        $result = array( $token['location'] =>  array("D2","F2","D4","F4") );  
+        
+        if($token_color == SHEEP_COLOR){//Only the sheep can move from row N to N+1 (backward for wolves)
+            $this->addPossiblePositionInArray($result, $token_location, 1,1 );
+            $this->addPossiblePositionInArray($result, $token_location, 1,-1 );
+        }
+        //all can move from row N to N-1 (forward for wolves) :
+        $this->addPossiblePositionInArray($result, $token_location, -1,1 );
+        $this->addPossiblePositionInArray($result, $token_location, -1,-1 );
             
         return $result;
     }
+    /**
+    Directly add the new position in the pArray corresponding to coordinates ORIGIN+[dRow,dCol]
+    */
+    function addPossiblePositionInArray( &$pArray, $origin_location, $dRow,$dCol )
+    {
+        $row = substr($origin_location, -1);
+        $columnInt = strpos (COLUMNS_LETTERS, substr($origin_location, 0, -1) );
+        
+        //TODO JSA dont add new position IF out of board limits
+        
+        $nextRow = $row + $dRow;
+        $nextColumnInt = $columnInt + $dCol;
+        $nextCol = substr(COLUMNS_LETTERS, $nextColumnInt, 1);
+        
+        $nextPos = "$nextCol$nextRow";
+        $this->trace("addPossiblePositionInArray($origin_location, $dRow,$dCol) : $nextPos ");
+
+        //Add corresponding position in array
+        $pArray[] = $nextPos;
+        
+    }
+    
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 //////////// 
@@ -316,7 +377,9 @@ class WolfAndSheeps extends Table
         {
             // This player can't play   => end of the game
             $this->gamestate->nextState( 'endGame' );
+            //TODO JSA add 1 score to other player
         }
+        //TODO JSA CHECK IF SHEEP IS ON the opposite line (row == MAX row)
         else
         {
             // This player can play. Give him some extra time
