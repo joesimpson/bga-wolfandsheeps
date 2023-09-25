@@ -218,7 +218,7 @@ function (dojo, declare) {
             {
                 let moves = possibleMoves[origin];
                 /*
-                let divPlace = "cell_"+origin;
+                let divPlace = "wsh_cell_"+origin;
                 if($(divPlace) == null){
                     console.log( "Cannot place possibleMove on not found cell ",divPlace, origin );
                     return null;
@@ -242,8 +242,7 @@ function (dojo, declare) {
             let row = coord_row -1;
             let col = "ABCDEFGHIJ".indexOf(coord_col);
             */
-            //TODO JSA Add prefix wsh_cell :
-            let divPlace = "cell_"+coord;
+            let divPlace = "wsh_cell_"+coord;
             if($(divPlace) == null){
                 console.log( "Cannot place token on not found cell ",divPlace, coord );
                 return;
@@ -286,8 +285,8 @@ function (dojo, declare) {
 
             let token_id = evt.currentTarget.getAttribute("data_token_id") ;
             //let dest= evt.currentTarget.getAttribute("data_location") ;
-            //Now it's in cell id "cell_D5"
-            let dest= evt.currentTarget.id.split("_")[1];
+            //Now it's in cell id "wsh_cell_D5"
+            let dest= evt.currentTarget.id.split("_")[2];
 
             if( ! dojo.hasClass( evt.currentTarget.id, 'wsh_possibleMoveTo' ) )
             {
@@ -336,7 +335,7 @@ function (dojo, declare) {
             for( let i in moves )
             {
                 let target = moves[i];
-                let targetId = "cell_"+target;
+                let targetId = "wsh_cell_"+target;
                 if($(targetId) == null){
                     console.log( "Cannot place move on not found cell ",targetId, target );
                     continue;
@@ -399,7 +398,7 @@ function (dojo, declare) {
             
             //Animation to move existing token to dest :
             let tokenDivId = tokenId;
-            let destinationDivId ="cell_"+destination;
+            let destinationDivId ="wsh_cell_"+destination;
             this.attachToNewParentNoDestroy(tokenDivId, destinationDivId);
             let anim = this.slideToObject(tokenDivId,destinationDivId,1000);
             dojo.connect(anim, 'onEnd', function(node){
