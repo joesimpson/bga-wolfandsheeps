@@ -19,7 +19,9 @@
 
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
-const COLUMNS_LETTERS ="ABCDEFGHIJ";
+const COLUMNS_LETTERS ="ABCDEFGH";
+const LINE_MAX = 8;
+
 const SHEEP_COLOR = "ffffff";//WHITE
 const WOLF_COLOR = "000000";//BLACK
 
@@ -272,6 +274,8 @@ class WolfAndSheeps extends Table
         $this->addPossiblePositionInArray($result, $token_location, -1,1 );
         $this->addPossiblePositionInArray($result, $token_location, -1,-1 );
             
+        $this->dump('getPossibleMovesForToken() : result ', $result);
+        
         return $result;
     }
     /**
@@ -282,10 +286,14 @@ class WolfAndSheeps extends Table
         $row = substr($origin_location, -1);
         $columnInt = strpos (COLUMNS_LETTERS, substr($origin_location, 0, -1) );
         
-        //TODO JSA dont add new position IF out of board limits
-        
         $nextRow = $row + $dRow;
+        //dont add new position IF out of board limits
+        if($nextRow <= 0) return;
+        if($nextRow > LINE_MAX) return;
+        
         $nextColumnInt = $columnInt + $dCol;
+        if($nextColumnInt <= 0) return;
+        if($nextColumnInt > strlen(COLUMNS_LETTERS)-1 ) return;
         $nextCol = substr(COLUMNS_LETTERS, $nextColumnInt, 1);
         
         $nextPos = "$nextCol$nextRow";
