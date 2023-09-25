@@ -23,6 +23,7 @@ const COLUMNS_LETTERS ="ABCDEFGHIJ";
 const SHEEP_COLOR = "ffffff";//WHITE
 const WOLF_COLOR = "000000";//BLACK
 
+const TOKEN_STATE_RESET = 0;
 const TOKEN_STATE_MOVED = 1;
 
 class WolfAndSheeps extends Table
@@ -125,6 +126,9 @@ class WolfAndSheeps extends Table
         
         $result['board'] = self::getObjectListFromDB(   self::getSQLSelectTOKEN() );
   
+        $result['constants'] = array( 
+            "TOKEN_STATE_MOVED" => TOKEN_STATE_MOVED,
+        );
         return $result;
     }
 
@@ -209,6 +213,10 @@ class WolfAndSheeps extends Table
     function dbUpdateTokenLocation($tokenId,$dest){
         $newState = TOKEN_STATE_MOVED;
         self::DbQuery("UPDATE token SET token_location='$dest', token_state='$newState' WHERE token_key = '$tokenId' ");
+    }
+    
+    function dbUpdateAllTokenState($newState){
+        self::DbQuery("UPDATE token SET token_state='$newState'");
     }
     //////////// Database Utility functions - END -----------------------------------
 
@@ -310,6 +318,7 @@ class WolfAndSheeps extends Table
         $player_id = self::getActivePlayerId();
         
         $token = $this->dbGetToken($tokenId);
+        $this->dbUpdateAllTokenState(TOKEN_STATE_RESET);
         $this->dbUpdateTokenLocation($tokenId,$dest);
         
         $token_origin = $token['location'];

@@ -63,7 +63,9 @@ function (dojo, declare) {
             for( let i in gamedatas.board ){
                 let token = gamedatas.board[i];
                 this.addTokenOnBoard(token.key, token.color,token.location);
-                
+                if(token.state == gamedatas.constants.TOKEN_STATE_MOVED){
+                    this.updateLastMove(token.key);
+                }
             }
             dojo.query( '.wsh_token' ).connect( 'onclick', this, 'onSelectMoveOrigin' );
             dojo.query( '.wsh_cell' ).connect( 'onclick', this, 'onPlayToken' );
@@ -193,6 +195,12 @@ function (dojo, declare) {
         },
         
         //// Other Utility methods ------------------------
+        updateLastMove: function( $tokenId )
+        {
+            dojo.query( '.wsh_token' ).removeClass( 'wsh_lastMove' );
+            dojo.addClass( $tokenId,'wsh_lastMove' ); 
+        },
+        
         updatePossibleMoves: function( possibleMoves )
         {
             // Remove current possible moves
@@ -398,6 +406,7 @@ function (dojo, declare) {
                 dojo.attr(node, "data_location", destination);
             });
             anim.play();
+            this.updateLastMove(tokenId);
         },    
    });             
 });

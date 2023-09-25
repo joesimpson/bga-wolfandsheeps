@@ -153,3 +153,7 @@
     font-weight: 400;
     position: absolute
 }
+
+.wsh_lastMove{
+    outline: 5px solid white;
+}
