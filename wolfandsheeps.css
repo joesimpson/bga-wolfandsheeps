@@ -113,6 +113,10 @@
 .wsh_cell_light {
     background-position: 0 0
 }
+.wsh_token{
+    /** allways display over cells*/
+    z-index: 1;
+}
 
 .wsh_possibleMoveFrom:hover {
     transform: scale(1.1);
@@ -123,7 +127,7 @@
     outline: 5px dashed yellow;
     -webkit-animation: wsh_rotate 12s linear infinite;
     /** To se outline rotating outside cell */
-    z-index: 1;
+    z-index: 2;
 }
 .wsh_possibleMoveFromHere{
     outline-style: solid;

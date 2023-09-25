@@ -192,6 +192,10 @@ class WolfAndSheeps extends Table
         $sql = self::getSQLSelectTOKEN()." WHERE token_key='$token_key'" ;
         return self::getObjectFromDB( $sql ); 
     }
+    function dbGetTokenOnLocation($token_location){
+        $sql = self::getSQLSelectTOKEN()." WHERE token_location='$token_location'" ;
+        return self::getObjectFromDB( $sql ); 
+    }
     
     /**
     return all tokens of this color
@@ -200,6 +204,7 @@ class WolfAndSheeps extends Table
         $sql = "SELECT * FROM (".self::getSQLSelectTOKEN().") subquery WHERE color = '$player_color'" ;
         return self::getObjectListFromDB( $sql ); 
     }
+     
     
     function dbUpdateTokenLocation($tokenId,$dest){
         $newState = TOKEN_STATE_MOVED;
@@ -227,7 +232,9 @@ class WolfAndSheeps extends Table
         foreach( $tokens as $token){
             $origin = $token['location'];
             $token_id = $token['key'];
-            $result[$origin] = $this->getPossibleMovesForToken($token_id);
+            $moves = $this->getPossibleMovesForToken($token_id);
+            if(count($moves) ==0 ) continue;
+            $result[$origin] = $moves;
         }
         return $result;
     }
@@ -274,6 +281,10 @@ class WolfAndSheeps extends Table
         $nextCol = substr(COLUMNS_LETTERS, $nextColumnInt, 1);
         
         $nextPos = "$nextCol$nextRow";
+        $existingToken = $this->dbGetTokenOnLocation($nextPos);
+        //Check position is EMPTY !!!!!
+        if($existingToken) return;
+        
         $this->trace("addPossiblePositionInArray($origin_location, $dRow,$dCol) : $nextPos ");
 
         //Add corresponding position in array
@@ -307,6 +318,7 @@ class WolfAndSheeps extends Table
         self::notifyAllPlayers( "tokenPlayed", clienttranslate( '${player_name} moves from ${origin} to ${dest}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
+            'color' =>  $token['color'], 
             'tokenId' => $tokenId,
             'origin' => $token_origin, 
             'dest' => $dest,

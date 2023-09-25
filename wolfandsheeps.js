@@ -62,28 +62,7 @@ function (dojo, declare) {
             
             for( let i in gamedatas.board ){
                 let token = gamedatas.board[i];
-                let coord = token.location;
-                let row = token.coord_row -1;
-                let col = "ABCDEFGHIJ".indexOf(token.coord_col);
-                let divPlace = "cell_"+coord;
-                if($(divPlace) == null){
-                    console.log( "Cannot place token on not found cell ",divPlace, token );
-                    continue;
-                }
-            
-                dojo.place(  
-                    this.format_block(
-                        'jstpl_wsh_token',
-                        {
-                            T_ID : token.key,
-                            T_COLOR : token.color,
-                            T_ROW : row,
-                            T_COLUMN: col,
-                            T_LOCATION : coord,
-                        }
-                    ),
-                    divPlace
-                );
+                this.addTokenOnBoard(token.key, token.color,token.location);
                 
             }
             dojo.query( '.wsh_token' ).connect( 'onclick', this, 'onSelectMoveOrigin' );
@@ -171,7 +150,37 @@ function (dojo, declare) {
         
         */
 
+        
+        //// Studio Cookbook Utility methods ------------------------
+        
+        /**
+         * This method will attach mobile to a new_parent without destroying, unlike original attachToNewParent which destroys mobile and
+         * all its connectors (onClick, etc)
+         */
+        attachToNewParentNoDestroy: function (mobile_in, new_parent_in, relation, place_position) {
 
+            const mobile = $(mobile_in);
+            const new_parent = $(new_parent_in);
+
+            var src = dojo.position(mobile);
+            if (place_position)
+                mobile.style.position = place_position;
+            dojo.place(mobile, new_parent, relation);
+            mobile.offsetTop;//force re-flow
+            var tgt = dojo.position(mobile);
+            var box = dojo.marginBox(mobile);
+            var cbox = dojo.contentBox(mobile);
+            var left = box.l + src.x - tgt.x;
+            var top = box.t + src.y - tgt.y;
+
+            mobile.style.position = "absolute";
+            mobile.style.left = left + "px";
+            mobile.style.top = top + "px";
+            box.l += box.w - cbox.w;
+            box.t += box.h - cbox.h;
+            mobile.offsetTop;//force re-flow
+            return box;
+        },
         ajaxcallwrapper: function(action, args, handler) {
             if (!args) {
                 args = {};
@@ -183,6 +192,7 @@ function (dojo, declare) {
             }
         },
         
+        //// Other Utility methods ------------------------
         updatePossibleMoves: function( possibleMoves )
         {
             // Remove current possible moves
@@ -217,6 +227,33 @@ function (dojo, declare) {
             //TODO JSA see how to display this tooltip without adding a "click" event listener...
             //this.addTooltipToClass( 'wsh_possibleMoveFrom', '', _('You can move from this place') );
             
+        },
+        
+        addTokenOnBoard: function( id, color,coord ) {
+            /*
+            let row = coord_row -1;
+            let col = "ABCDEFGHIJ".indexOf(coord_col);
+            */
+            //TODO JSA Add prefix wsh_cell :
+            let divPlace = "cell_"+coord;
+            if($(divPlace) == null){
+                console.log( "Cannot place token on not found cell ",divPlace, coord );
+                return;
+            }
+        
+            dojo.place(  
+                this.format_block(
+                    'jstpl_wsh_token',
+                    {
+                        T_ID : id,
+                        T_COLOR : color,
+                        //T_ROW : row,
+                        //T_COLUMN: col,
+                        T_LOCATION : coord,
+                    }
+                ),
+                divPlace
+            ); 
         },
         
         ///////////////////////////////////////////////////
@@ -345,7 +382,22 @@ function (dojo, declare) {
         {
             console.log( 'notif_tokenPlayed', notif );
             
-            //TODO JSA display notif.arg.moves
+            let tokenId = notif.args.tokenId;
+            let destination = notif.args.dest;
+            let color = notif.args.color;
+            
+            //Do want to create NEw Token ? 
+            //this.addTokenOnBoard(tokenId, color,destination);
+            
+            //Animation to move existing token to dest :
+            let tokenDivId = tokenId;
+            let destinationDivId ="cell_"+destination;
+            this.attachToNewParentNoDestroy(tokenDivId, destinationDivId);
+            let anim = this.slideToObject(tokenDivId,destinationDivId,1000);
+            dojo.connect(anim, 'onEnd', function(node){
+                dojo.attr(node, "data_location", destination);
+            });
+            anim.play();
         },    
    });             
 });
