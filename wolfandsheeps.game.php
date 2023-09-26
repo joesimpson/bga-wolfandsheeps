@@ -28,6 +28,8 @@ const WOLF_COLOR = "000000";//BLACK
 const TOKEN_STATE_RESET = 0;
 const TOKEN_STATE_MOVED = 1;
 
+const WINNER_SCORE = 1;
+
 class WolfAndSheeps extends Table
 {
 	function __construct( )
@@ -220,6 +222,11 @@ class WolfAndSheeps extends Table
     function dbUpdateAllTokenState($newState){
         self::DbQuery("UPDATE token SET token_state='$newState'");
     }
+    
+    // set player score
+    function dbSetScore($player_id, $score) {
+        self::DbQuery("UPDATE player SET player_score='$score' WHERE player_id='$player_id'");
+    }
     //////////// Database Utility functions - END -----------------------------------
 
     /* Get the list of possible moves
@@ -397,21 +404,62 @@ class WolfAndSheeps extends Table
         // Active next player
         $player_id = self::activeNextPlayer();
 
+        $sheepToken = $this->dbGetToken("t_".SHEEP_COLOR."_1");
+        //CHECK IF SHEEP IS ON the opposite line (row == MAX row) => Sheep wins
+        if($sheepToken["coord_row"] == LINE_MAX){
+            $winner_color = SHEEP_COLOR;
+            
+            $players = $this->loadPlayersBasicInfos();
+            foreach ($players as $player) {
+                if($player['player_color'] == $winner_color ) { 
+                    $winner_id = $player['player_id'];
+                    $winner_name = $player['player_name'];
+                }
+            }
+            $this->dbSetScore($winner_id, WINNER_SCORE);
+            
+            self::notifyAllPlayers( "sheepWins", clienttranslate( '${player_name} wins by reaching the other side of the board' ), array(
+                'player_id' => $winner_id,
+                'player_name' => $winner_name,
+                'winner_score' => WINNER_SCORE,
+            ) );
+            
+            // Go to end of the game
+            $this->gamestate->nextState( 'endGame' );
+            return;
+        }
+
+        // TODO JSA check if we can check it 1 turn before to avoid a useless turn waiting ?
+        //TODO JSA Check if only sheep's 0 movements get LOOSING
         // Can this player play?
         $possibleMoves = self::getPossibleMoves( $player_id );
         if( count( $possibleMoves ) == 0 )
         {
-            // This player can't play   => end of the game
+            
+            //add 1 score to other player :
+            $players = $this->loadPlayersBasicInfos();
+            foreach ($players as $player) {
+                if($player['player_id'] != $player_id ) { //ONLY 2 players here so let's find any other
+                    $winner_id = $player['player_id'];
+                    $winner_name = $player['player_name'];
+                }
+            }
+            $this->dbSetScore($winner_id, WINNER_SCORE);
+            
+            self::notifyAllPlayers( "winByBlocking", clienttranslate( '${player_name} wins because the other player is blocked' ), array(
+                'player_id' => $winner_id,
+                'player_name' => $winner_name,
+                'winner_score' => WINNER_SCORE,
+            ) );
+            
+            // Go to end of the game
             $this->gamestate->nextState( 'endGame' );
-            //TODO JSA add 1 score to other player
+            return;
         }
-        //TODO JSA CHECK IF SHEEP IS ON the opposite line (row == MAX row)
-        else
-        {
-            // This player can play. Give him some extra time
-            self::giveExtraTime( $player_id );
-            $this->gamestate->nextState( 'nextTurn' );
-        }
+        
+        // This player can play. Give them some extra time
+        self::giveExtraTime( $player_id );
+        $this->gamestate->nextState( 'nextTurn' );
     }
 
 //////////////////////////////////////////////////////////////////////////////

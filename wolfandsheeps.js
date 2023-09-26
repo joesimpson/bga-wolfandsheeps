@@ -381,6 +381,8 @@ function (dojo, declare) {
             // 
             
             dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
+            dojo.subscribe( 'sheepWins', this, "notif_sheepWins" );
+            dojo.subscribe( 'winByBlocking', this, "notif_winByBlocking" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -410,6 +412,18 @@ function (dojo, declare) {
             anim.play();
             this.updateLastMove(tokenId);
         },    
+        
+        notif_sheepWins: function( notif )
+        {
+            //Update player panel score
+            this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
+        },
+        notif_winByBlocking: function( notif )
+        {
+            //Update player panel score
+            this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
+        },
+        
    });             
 });
 //# sourceURL=wolfandsheeps.js

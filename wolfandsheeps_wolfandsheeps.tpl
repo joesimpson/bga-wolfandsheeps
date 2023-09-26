@@ -10,12 +10,6 @@
 -->
 
 <div id="wsh_game_zone">
-    <h1><center>Work in progress :
-        <br></center>
-    </h1>
-
-
-
     <!-- TODO JSA GENERATE TEMPLATE elements instead of full hard corded -->
     <!-- TODO JSA Display this board from the player point of view (black on top if viewed by white...) -->
 
