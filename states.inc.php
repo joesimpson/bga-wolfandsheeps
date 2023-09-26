@@ -67,6 +67,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must move a token'),
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
+        "updateGameProgression" => true,
         "possibleactions" => array( "playToken" ),
         "transitions" => array( "moveToken" => 11 )
     ),

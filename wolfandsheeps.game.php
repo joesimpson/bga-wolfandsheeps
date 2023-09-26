@@ -148,9 +148,26 @@ class WolfAndSheeps extends Table
     */
     function getGameProgression()
     {
-        // TODO: compute and return the game progression
+        //Each turn Black player MUST advance a pawn on a line : it means each of its 4 pawns can move a maximum of 7 times (LINE_MAX-1).
+        $nb_wolves = LINE_MAX/2;
+        $nb_wolf_moves = (LINE_MAX-1);
+        $nbMaxBlackMoves = $nb_wolves*$nb_wolf_moves;
+        
+        //So the (theoritical) maximum number of moves is 2 times this (Black + White): a game can always finish before...
+        $nbMaxMoves = 2* $nbMaxBlackMoves;
 
-        return 0;
+        //predefined  Global value "6"	"playerturn_nbr" :	Player turn number
+        $currentMoves = 0;
+        try{
+            $currentMoves = $this->getGameStateValue('playerturn_nbr');
+        } catch ( Exception $e ) {
+            $this->error("Fatal error while calling BGA predefined global 'playerturn_nbr'");
+            //$this->dump('err', $e);
+        }
+        
+        $progress = $currentMoves / $nbMaxMoves *100;
+        
+        return $progress;
     }
 
 
