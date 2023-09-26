@@ -292,7 +292,7 @@ class WolfAndSheeps extends Table
         if($nextRow > LINE_MAX) return;
         
         $nextColumnInt = $columnInt + $dCol;
-        if($nextColumnInt <= 0) return;
+        if($nextColumnInt < 0) return;
         if($nextColumnInt > strlen(COLUMNS_LETTERS)-1 ) return;
         $nextCol = substr(COLUMNS_LETTERS, $nextColumnInt, 1);
         
