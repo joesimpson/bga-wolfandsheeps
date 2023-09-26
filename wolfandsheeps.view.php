@@ -78,6 +78,74 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
         }
         
         */
+        
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_row_number_left" );
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_row_number_right" );
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_col_number" );
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_col_number_bottom" );
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_cell" );
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_column" );
+        
+        $columns = \COLUMNS_LETTERS;  //"ABCDEFGH";
+        //TODO JSA how to reuse game LINE_MAX
+        $lines = "12345678";
+        $counter = 0;
+        foreach (str_split($columns) as $column) {
+            $columnInt = strpos ($columns, $column );
+            
+            $this->page->reset_subblocks( 'wsh_row_number_left' ); 
+            $this->page->reset_subblocks( 'wsh_row_number_right' ); 
+            $this->page->reset_subblocks( 'wsh_col_number_bottom' ); 
+            $this->page->reset_subblocks( 'wsh_board_cell' ); 
+            foreach (str_split($lines) as $row) {
+                $color = ( $counter % 2 ==0 ) ? "dark" : "light";
+                
+                if($columnInt == 0){//FIRST COLUMN
+                    $this->page->insert_block( "wsh_row_number_left", array( 
+                                                        "ROW" => $row,
+                                                         ) );
+                }     
+                else if($columnInt == strlen($columns)-1 ){//LAST COLUMN
+                    $this->page->insert_block( "wsh_row_number_right", array( 
+                                                        "COLUMN_INT" => $columnInt,
+                                                        "ROW" => $row,
+                                                         ) );
+                }         
+                
+                if($row == 1){//FIRST ROW
+                    
+                    $this->page->reset_subblocks( 'wsh_col_number' ); 
+                    
+                    $this->page->insert_block( "wsh_col_number", array( 
+                                                    "COLUMN" => $column,
+                                                    "COLUMN_INT" => $columnInt,
+                                                         ) );
+                } else if($row == \LINE_MAX){//LAST ROW
+                    
+                    $this->page->insert_block( "wsh_col_number_bottom", array( 
+                                                    "COLUMN" => $column,
+                                                    "COLUMN_INT" => $columnInt,
+                                                    "LINE_MAX" => \LINE_MAX,
+                                                         ) );
+                }
+                
+                $this->page->insert_block( "wsh_board_cell", array( 
+                                                    "ROW" => $row,
+                                                    "COLUMN" => $column,
+                                                    "COLUMN_INT" => $columnInt,
+                                                    "LIGHT_OR_DARK" => $color,
+                                                     ) );
+                        
+                                         
+                $counter++;
+            }
+             
+            $this->page->insert_block( "wsh_board_column", array( 
+                                                    "COLUMN" => $column,
+                                                     ) );
+            $counter++;
+         
+        }
 
 
 

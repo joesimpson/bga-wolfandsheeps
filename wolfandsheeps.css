@@ -58,7 +58,10 @@
  prefix IDENTIFIER for this game : "wsh"
 */
 
-
+:root {
+    /** Could be used to add a "slider" to change board width */
+  --wsh_cell_size: 62px;
+}
 
 /* WHITE */
 .wsh_token_ffffff{
@@ -71,8 +74,8 @@
 }
 
 .wsh_token{	
-   width: 62px;
-   height: 62px;
+   width: var(--wsh_cell_size);
+   height: var(--wsh_cell_size);
    position: absolute;
    background-image: url('img/tokens.png');
    background-size: 200% 100%;
@@ -86,28 +89,28 @@
 #wsh_board {
     border: 8px outset #630;
     display: inline-block;
-    margin: 20px 1% 1%;
+    margin: calc(0.5*var(--wsh_cell_size));
     position: relative
 }
  
 .wsh_board_size_8 {
-    height: 496px;
-    width: 496px
+    height: calc(8*var(--wsh_cell_size));
+    width: calc(8*var(--wsh_cell_size));
 }
 
 .wsh_cell_holder {
     background-image: url(img/cells.jpg);
-    background-size: 124px 124px
+    background-size: calc(2*var(--wsh_cell_size)) calc(2*var(--wsh_cell_size));
 }
 
 .wsh_cell,.wsh_cell_holder {
-    height: 62px;
+    height: var(--wsh_cell_size);
     position: absolute;
-    width: 62px
+    width: var(--wsh_cell_size);
 }
 
 .wsh_cell_dark {
-    background-position: -62px 0
+    background-position: calc(-1*var(--wsh_cell_size)) 0;
 }
 
 .wsh_cell_light {
