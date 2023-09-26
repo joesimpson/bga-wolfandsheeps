@@ -87,9 +87,23 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
         $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_column" );
         
         $columns = \COLUMNS_LETTERS;  //"ABCDEFGH";
-        //TODO JSA how to reuse game LINE_MAX
-        $lines = "12345678";
+        //$lines = "12345678";
+        $lines = "";
+        for ($k = 1; $k <= \LINE_MAX; $k++) {
+            $lines .=$k;
+        }
+        
         $counter = 0;
+        
+        $activateRowOffset = false;
+        
+        if( $this->game->isCurrentPlayerSheep() ){
+            //DISPLAY REVERSE BOARD lines/columns in order to have the player pawns always start at bottom of board:
+            $lines = strrev($lines); // 87654321
+            $columns = strrev($columns);
+            $activateRowOffset = true;
+        }
+        
         foreach (str_split($columns) as $column) {
             $columnInt = strpos ($columns, $column );
             
@@ -99,16 +113,19 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
             $this->page->reset_subblocks( 'wsh_board_cell' ); 
             foreach (str_split($lines) as $row) {
                 $color = ( $counter % 2 ==0 ) ? "dark" : "light";
+                $rowOffset = $activateRowOffset ? ( \LINE_MAX-$row +1 ): $row;
                 
                 if($columnInt == 0){//FIRST COLUMN
                     $this->page->insert_block( "wsh_row_number_left", array( 
                                                         "ROW" => $row,
+                                                        "ROW_OFFSET" => $rowOffset,
                                                          ) );
                 }     
                 else if($columnInt == strlen($columns)-1 ){//LAST COLUMN
                     $this->page->insert_block( "wsh_row_number_right", array( 
                                                         "COLUMN_INT" => $columnInt,
                                                         "ROW" => $row,
+                                                        "ROW_OFFSET" => $rowOffset,
                                                          ) );
                 }         
                 
@@ -131,6 +148,7 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
                 
                 $this->page->insert_block( "wsh_board_cell", array( 
                                                     "ROW" => $row,
+                                                    "ROW_OFFSET" => $rowOffset,
                                                     "COLUMN" => $column,
                                                     "COLUMN_INT" => $columnInt,
                                                     "LIGHT_OR_DARK" => $color,

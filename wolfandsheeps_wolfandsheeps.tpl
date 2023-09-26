@@ -27,17 +27,15 @@
             <!-- END wsh_col_number_bottom -->
                 
             <!-- BEGIN wsh_row_number_left -->
-            <div class="wsh_coordinate wsh_row_number" style="left:calc(-0.3*var(--wsh_cell_size)); top:calc( ( {ROW} - 0.65)*var(--wsh_cell_size));">{ROW}</div>
+            <div class="wsh_coordinate wsh_row_number" style="left:calc(-0.3*var(--wsh_cell_size)); top:calc( ( {ROW_OFFSET} - 0.65)*var(--wsh_cell_size));">{ROW}</div>
             <!-- END wsh_row_number_left -->
             
             <!-- BEGIN wsh_row_number_right -->
-            <div class="wsh_coordinate wsh_row_number" style="left:calc( (1.25 +  {COLUMN_INT})*var(--wsh_cell_size)); top:calc( ({ROW} - 0.65)*var(--wsh_cell_size));">{ROW}</div>
+            <div class="wsh_coordinate wsh_row_number" style="left:calc( (1.25 +  {COLUMN_INT})*var(--wsh_cell_size)); top:calc( ({ROW_OFFSET} - 0.65)*var(--wsh_cell_size));">{ROW}</div>
             <!-- END wsh_row_number_right -->
                 
             <!-- BEGIN wsh_board_cell -->
-            <div class="wsh_cell_holder wsh_cell_{LIGHT_OR_DARK}" style="top: calc(({ROW} - 1)*var(--wsh_cell_size)); left: calc({COLUMN_INT}*var(--wsh_cell_size));">
-                
-                
+            <div class="wsh_cell_holder wsh_cell_{LIGHT_OR_DARK}" style="top: calc(({ROW_OFFSET} - 1)*var(--wsh_cell_size)); left: calc({COLUMN_INT}*var(--wsh_cell_size));">
                 <div id="wsh_cell_{COLUMN}{ROW}" class="wsh_cell"></div>
             </div>
             <!-- END wsh_board_cell -->

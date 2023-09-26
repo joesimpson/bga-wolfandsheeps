@@ -332,6 +332,10 @@ class WolfAndSheeps extends Table
         
     }
     
+    function isCurrentPlayerSheep () {
+        return self::getCurrentPlayerColor() == SHEEP_COLOR;
+    }
+    
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 //////////// 
