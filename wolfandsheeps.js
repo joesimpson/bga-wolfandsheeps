@@ -308,7 +308,6 @@ function (dojo, declare) {
             evt.preventDefault();
             dojo.stopEvent( evt );
             
-            dojo.query( '.wsh_possibleMoveFromHere' ).removeClass( 'wsh_possibleMoveFromHere' );
             
             let origin= evt.currentTarget.getAttribute("data_location") ;
             let token_id = evt.currentTarget.id;
@@ -317,6 +316,7 @@ function (dojo, declare) {
                 // This is not a possible move => the click does nothing
                 return ;
             }
+            dojo.query( '.wsh_possibleMoveFromHere' ).removeClass( 'wsh_possibleMoveFromHere' );
             
             let displayedMoves = dojo.query( '.wsh_possibleMoveTo' );
             //this.disconnect(displayedMoves, 'click');
