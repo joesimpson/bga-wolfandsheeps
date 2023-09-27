@@ -56,40 +56,30 @@ $stats_type = array(
                     "name" => totranslate("Number of turns"),
                     "type" => "int" ),
 
-/*
-        Examples:
-
-
-        "table_teststat1" => array(   "id"=> 10,
-                                "name" => totranslate("table test stat 1"), 
-                                "type" => "int" ),
-                                
-        "table_teststat2" => array(   "id"=> 11,
-                                "name" => totranslate("table test stat 2"), 
-                                "type" => "float" )
-*/  
     ),
     
     // Statistics existing for each player
     "player" => array(
 
-        "turns_number" => array("id"=> 10,
-                    "name" => totranslate("Number of turns"),
+        "player_side" => array("id"=> 10,
+                    "name" => totranslate("Played side"),
+                    "type" => "int" ),
+                    
+        "moves_forward" => array("id"=> 20,
+                    "name" => totranslate("Number of moves forward"),
                     "type" => "int" ),
     
-/*
-        Examples:    
-        
-        
-        "player_teststat1" => array(   "id"=> 10,
-                                "name" => totranslate("player test stat 1"), 
-                                "type" => "int" ),
-                                
-        "player_teststat2" => array(   "id"=> 11,
-                                "name" => totranslate("player test stat 2"), 
-                                "type" => "float" )
+        "moves_backward" => array("id"=> 21,
+                    "name" => totranslate("Number of moves backward"),
+                    "type" => "int" ),
 
-*/    
-    )
+    ),
+    
+    "value_labels" => array(
+		10 => array( 
+			0 => totranslate("White"),
+			1 => totranslate("Black"), 
+		),
+	)
 
 );

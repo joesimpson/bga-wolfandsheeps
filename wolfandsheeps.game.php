@@ -80,6 +80,12 @@ class WolfAndSheeps extends Table
         foreach( $players as $player_id => $player )
         {
             $color = array_shift( $default_colors );
+            
+            if( $color == WOLF_COLOR )
+                $blackplayer_id = $player_id;
+            else
+                $whiteplayer_id = $player_id;
+            
             $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
         }
         $sql .= implode( ',', $values );
@@ -94,8 +100,13 @@ class WolfAndSheeps extends Table
         
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
-        //self::initStat( 'table', 'table_teststat1', 0 );    // Init a table statistics
-        //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
+        self::initStat( 'table', 'turns_number', 0 );    // Init a table statistics
+        self::initStat( 'player', 'player_side', 0 );  // Init a player statistics (for all players)
+        self::initStat( 'player', 'moves_forward', 0 ); 
+        self::initStat( 'player', 'moves_backward', 0 ,$whiteplayer_id); 
+
+        self::setStat(0,'player_side',$whiteplayer_id);
+        self::setStat(1,'player_side',$blackplayer_id);
 
         // setup the initial game situation here
         $this->initTables();
@@ -332,6 +343,19 @@ class WolfAndSheeps extends Table
         
     }
     
+    /**
+    Return true if moving FROM $origin TO $destination BY this player represents a backward move
+    */
+    function isBackwardMove($origin, $destination, $player_color) {
+        $originRow = substr($origin, 1,1);
+        $destinationRow = substr($destination, 1,1);
+        
+        if($destinationRow > $originRow && $player_color == WOLF_COLOR) return true;
+        if($destinationRow < $originRow && $player_color == SHEEP_COLOR) return true;
+        
+        return false;
+    }
+    
     function isCurrentPlayerSheep () {
         return self::getCurrentPlayerColor() == SHEEP_COLOR;
     }
@@ -358,17 +382,24 @@ class WolfAndSheeps extends Table
         $this->dbUpdateTokenLocation($tokenId,$dest);
         
         $token_origin = $token['location'];
+        $token_color = $token['color'];
+        
+        if( $this->isBackwardMove($token_origin, $dest,$token_color)){
+            self::incStat(1,'moves_backward',$player_id);
+        }
+        else {
+            self::incStat(1,'moves_forward',$player_id);
+        }
         
         // Notify all players about the token played
         self::notifyAllPlayers( "tokenPlayed", clienttranslate( '${player_name} moves from ${origin} to ${dest}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'color' =>  $token['color'], 
+            'color' =>  $token_color, 
             'tokenId' => $tokenId,
             'origin' => $token_origin, 
             'dest' => $dest,
         ) );
-          
           
         //----------------------------------------------------------------------------
         // Then, go to the next state
@@ -477,6 +508,8 @@ class WolfAndSheeps extends Table
             $this->gamestate->nextState( 'endGame' );
             return;
         }
+        
+        self::incStat(1,'turns_number');
         
         // This player can play. Give them some extra time
         self::giveExtraTime( $player_id );
