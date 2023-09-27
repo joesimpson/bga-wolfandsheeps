@@ -19,8 +19,9 @@
 
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
-const COLUMNS_LETTERS ="ABCDEFGH";
-const LINE_MAX = 8;
+//Constants are replaced by global var + static function
+//const COLUMNS_LETTERS ="ABCDEFGH";
+//const LINE_MAX = 8;
 
 const SHEEP_COLOR = "ffffff";//WHITE
 const WOLF_COLOR = "000000";//BLACK
@@ -43,12 +44,13 @@ class WolfAndSheeps extends Table
         parent::__construct();
         
         self::initGameStateLabels( array( 
-            //    "my_first_global_variable" => 10,
+                "wsh_line_max" => 10,
             //    "my_second_global_variable" => 11,
             //      ...
             //    "my_first_game_variant" => 100,
             //    "my_second_game_variant" => 101,
             //      ...
+            "variant_BoardSize" => 100,
         ) );        
 	}
 	
@@ -100,8 +102,20 @@ class WolfAndSheeps extends Table
         /************ Start the game initialization *****/
 
         // Init global values with their initial values
-        //self::setGameStateInitialValue( 'my_first_global_variable', 0 );
         
+        $variant_BoardSize = self::getGameStateValue( 'variant_BoardSize' );
+        switch ($variant_BoardSize){
+            case 2:
+                $boardsize = 10;
+                break;
+            case 1:
+            default:
+                $boardsize = 8;
+                break;
+        }
+        
+        self::setGameStateInitialValue( 'wsh_line_max', $boardsize );
+                
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
         self::initStat( 'table', 'turns_number', 0 );    // Init a table statistics
@@ -113,7 +127,7 @@ class WolfAndSheeps extends Table
         self::setStat(1,'player_side',$blackplayer_id);
 
         // setup the initial game situation here
-        $this->initTables();
+        $this->initTables($boardsize);
 
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -164,8 +178,9 @@ class WolfAndSheeps extends Table
     function getGameProgression()
     {
         //Each turn Black player MUST advance a pawn on a line : it means each of its 4 pawns can move a maximum of 7 times (LINE_MAX-1).
-        $nb_wolves = LINE_MAX/2;
-        $nb_wolf_moves = (LINE_MAX-1);
+        $LINE_MAX = self::get_LINE_MAX();
+        $nb_wolves = $LINE_MAX/2;
+        $nb_wolf_moves = ($LINE_MAX-1);
         $nbMaxBlackMoves = $nb_wolves*$nb_wolf_moves;
         
         //So the (theoritical) maximum number of moves is 2 times this (Black + White): a game can always finish before...
@@ -197,18 +212,27 @@ class WolfAndSheeps extends Table
     /**
     Init DataBase
     */
-    function initTables(){
+    function initTables($boardsize){
         try {
             $players = $this->loadPlayersBasicInfos();
             
             // INIT Board with tokens starting positions : no other tokens will be used in the game
             $sql = "INSERT INTO token (token_key,token_location,token_state) VALUES ";
             $sql_values = array();
+            if($boardsize == 10){
+                $sql_values[] = "('t_".SHEEP_COLOR."_1','E1',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_1','B10',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_2','D10',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_3','F10',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_4','H10',0)";
+                $sql_values[] = "('t_".WOLF_COLOR."_5','J10',0)";
+            } else { // Default size 8
                 $sql_values[] = "('t_".SHEEP_COLOR."_1','E1',0)";
                 $sql_values[] = "('t_".WOLF_COLOR."_1','B8',0)";
                 $sql_values[] = "('t_".WOLF_COLOR."_2','D8',0)";
                 $sql_values[] = "('t_".WOLF_COLOR."_3','F8',0)";
                 $sql_values[] = "('t_".WOLF_COLOR."_4','H8',0)";
+            }
             $sql .= implode( $sql_values, ',' );
             self::DbQuery( $sql );
         
@@ -220,12 +244,28 @@ class WolfAndSheeps extends Table
         }
         
     }
+    
+    /**
+    Almost constant, but depends on game start variant 
+    */
+    function get_COLUMNS_LETTERS(){
+        $all_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        $line_max = self::getGameStateValue( 'wsh_line_max' );
+        $columns = substr($all_letters,0, $line_max) ;
+        return $columns;
+    }
+    /**
+    Almost constant, but depends on game start variant 
+    */
+    function get_LINE_MAX(){
+        return self::getGameStateValue( 'wsh_line_max' );;
+    }
 
     //////////// Database Utility functions - BEGIN -----------------------------------
     function getSQLSelectTOKEN() { return "SELECT token_key 'key', token_location location, token_state state, 
                     SUBSTRING(token_key FROM 3 FOR 6) color,
                     SUBSTRING(token_location FROM 1 FOR 1) coord_col,
-                    SUBSTRING(token_location FROM 2 FOR 1) coord_row 
+                    SUBSTRING(token_location FROM 2 FOR 2) coord_row 
                 FROM token ";
     }
     function dbGetToken($token_key){
@@ -324,18 +364,19 @@ class WolfAndSheeps extends Table
     */
     function addPossiblePositionInArray( &$pArray, $origin_location, $dRow,$dCol )
     {
-        $row = substr($origin_location, -1);
-        $columnInt = strpos (COLUMNS_LETTERS, substr($origin_location, 0, -1) );
+        $row = substr($origin_location,1);
+        $columnsLetters = self::get_COLUMNS_LETTERS();
+        $columnInt = strpos ($columnsLetters, substr($origin_location, 0, 1) );
         
         $nextRow = $row + $dRow;
         //dont add new position IF out of board limits
         if($nextRow <= 0) return;
-        if($nextRow > LINE_MAX) return;
+        if($nextRow > self::get_LINE_MAX()) return;
         
         $nextColumnInt = $columnInt + $dCol;
         if($nextColumnInt < 0) return;
-        if($nextColumnInt > strlen(COLUMNS_LETTERS)-1 ) return;
-        $nextCol = substr(COLUMNS_LETTERS, $nextColumnInt, 1);
+        if($nextColumnInt > strlen($columnsLetters)-1 ) return;
+        $nextCol = substr($columnsLetters, $nextColumnInt, 1);
         
         $nextPos = "$nextCol$nextRow";
         $existingToken = $this->dbGetTokenOnLocation($nextPos);
@@ -353,8 +394,8 @@ class WolfAndSheeps extends Table
     Return true if moving FROM $origin TO $destination BY this player represents a backward move
     */
     function isBackwardMove($origin, $destination, $player_color) {
-        $originRow = substr($origin, 1,1);
-        $destinationRow = substr($destination, 1,1);
+        $originRow = substr($origin, 1);
+        $destinationRow = substr($destination, 1);
         
         if($destinationRow > $originRow && $player_color == WOLF_COLOR) return true;
         if($destinationRow < $originRow && $player_color == SHEEP_COLOR) return true;
@@ -482,7 +523,7 @@ class WolfAndSheeps extends Table
 
         $sheepToken = $this->dbGetToken("t_".SHEEP_COLOR."_1");
         //CHECK IF SHEEP IS ON the opposite line (row == MAX row) => Sheep wins
-        if($sheepToken["coord_row"] == LINE_MAX){
+        if($sheepToken["coord_row"] == self::get_LINE_MAX()){
             $winner_color = SHEEP_COLOR;
             
             $players = $this->loadPlayersBasicInfos();

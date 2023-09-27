@@ -13,11 +13,11 @@
 
     <!-- Inspired by BGA Chess Board implementation by ecolin -->
     
-    <div id="wsh_board" class="wsh_board_size_8">
+    <div id="wsh_board" class="wsh_board_size_{BOARD_SIZE}">
         <!-- BEGIN wsh_board_column -->
     
             <!-- BEGIN wsh_col_number -->
-            <div class="wsh_coordinate wsh_col_number" style="top:calc(-0.4*var(--wsh_cell_size)); left:calc( ( 0.43 + {COLUMN_INT})*var(--wsh_cell_size));">{COLUMN}</div>
+            <div class="wsh_coordinate wsh_col_number" style="top:calc(-0.5*var(--wsh_cell_size)); left:calc( ( 0.43 + {COLUMN_INT})*var(--wsh_cell_size));">{COLUMN}</div>
             <!-- END wsh_col_number -->
             
             <!-- BEGIN wsh_col_number_bottom -->
@@ -25,7 +25,7 @@
             <!-- END wsh_col_number_bottom -->
                 
             <!-- BEGIN wsh_row_number_left -->
-            <div class="wsh_coordinate wsh_row_number" style="left:calc(-0.3*var(--wsh_cell_size)); top:calc( ( {ROW_OFFSET} - 0.65)*var(--wsh_cell_size));">{ROW}</div>
+            <div class="wsh_coordinate wsh_row_number" style="left:calc(-0.5*var(--wsh_cell_size)); top:calc( ( {ROW_OFFSET} - 0.65)*var(--wsh_cell_size));">{ROW}</div>
             <!-- END wsh_row_number_left -->
             
             <!-- BEGIN wsh_row_number_right -->

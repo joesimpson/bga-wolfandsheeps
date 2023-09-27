@@ -109,6 +109,11 @@
     width: calc(8*var(--wsh_cell_size));
 }
 
+.wsh_board_size_10 {
+    height: calc(10*var(--wsh_cell_size));
+    width: calc(10*var(--wsh_cell_size));
+}
+
 .wsh_cell_holder {
     background-image: url(img/cells.jpg);
     background-size: calc(2*var(--wsh_cell_size)) calc(2*var(--wsh_cell_size));

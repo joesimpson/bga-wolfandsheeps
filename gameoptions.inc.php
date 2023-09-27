@@ -53,6 +53,14 @@ $game_options = array(
 
     */
 
+    100 => array(
+                'name' => totranslate('Board size'),    
+                'values' => array(
+                            1 => array( 'name' => totranslate('Chess (8x8)'), 'description' => totranslate('classic chess board with 8 rows and 8 columns : 1 white token VS 4 black tokens')),
+                            2 => array( 'name' => totranslate('Checkers (10x10)'), 'description' => totranslate('classic checkers board with 10 rows and 10 columns : 1 white token VS 5 black tokens')),
+                        ),
+                'default' => 1
+            ),
 );
 
 

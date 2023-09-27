@@ -58,6 +58,9 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
         
         */
         
+        $COLUMNS_LETTERS = $this->game->get_COLUMNS_LETTERS();
+        $this->tpl['BOARD_SIZE'] = strlen($COLUMNS_LETTERS);
+        
         /*
         
         // Example: display a specific HTML block for each player in this game.
@@ -86,10 +89,17 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
         $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_cell" );
         $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_column" );
         
-        $columns = \COLUMNS_LETTERS;  //"ABCDEFGH";
+        $columns = $COLUMNS_LETTERS;//"ABCDEFGH";
         //$lines = "12345678";
         $lines = "";
-        for ($k = 1; $k <= \LINE_MAX; $k++) {
+        $tenCharReplacement = "A";
+        $LINE_MAX = $this->game->get_LINE_MAX();
+        for ($k = 1; $k <= $LINE_MAX; $k++) {
+            if($k==10){
+                $lines .= $tenCharReplacement;
+                continue;
+            }
+            //TODO DOESN't support >10
             $lines .=$k;
         }
         
@@ -112,8 +122,9 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
             $this->page->reset_subblocks( 'wsh_col_number_bottom' ); 
             $this->page->reset_subblocks( 'wsh_board_cell' ); 
             foreach (str_split($lines) as $row) {
+                if($row == $tenCharReplacement ) $row = 10;//In order to store 1 char for line 10 in this string (see before)
                 $color = ( $counter % 2 ==0 ) ? "dark" : "light";
-                $rowOffset = $activateRowOffset ? ( \LINE_MAX-$row +1 ): $row;
+                $rowOffset = $activateRowOffset ? ( $LINE_MAX-$row +1 ): $row;
                 
                 if($columnInt == 0){//FIRST COLUMN
                     $this->page->insert_block( "wsh_row_number_left", array( 
@@ -137,12 +148,12 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
                                                     "COLUMN" => $column,
                                                     "COLUMN_INT" => $columnInt,
                                                          ) );
-                } else if($row == \LINE_MAX){//LAST ROW
+                } else if($row == $LINE_MAX){//LAST ROW
                     
                     $this->page->insert_block( "wsh_col_number_bottom", array( 
                                                     "COLUMN" => $column,
                                                     "COLUMN_INT" => $columnInt,
-                                                    "LINE_MAX" => \LINE_MAX,
+                                                    "LINE_MAX" => $LINE_MAX,
                                                          ) );
                 }
                 
