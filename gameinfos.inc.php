@@ -30,8 +30,8 @@ $gameinfos = array(
 // Url of game publisher website
 'publisher_website' => '',   
 
-// Board Game Geek ID of the publisher
-'publisher_bgg_id' => 0,
+// Board Game Geek ID of the publisher : Public Domain here
+'publisher_bgg_id' => 171,
 
 // Board game geek ID of the game
 'bgg_id' => 148180,
