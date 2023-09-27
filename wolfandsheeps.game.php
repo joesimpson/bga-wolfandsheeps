@@ -276,7 +276,8 @@ class WolfAndSheeps extends Table
         //  LOOP ON player TOKENS
         $color = self::getPlayerColorById( $player_id );
         $tokens = $this->dbGetPlayerTokens($color );
-        $this->dump("getPossibleMoves($player_id ) color $color:", $tokens);
+       
+        $this->dump("getPossibleMoves($player_id ) color $color:", $tokens); // NOI18N 
         
         foreach( $tokens as $token){
             $origin = $token['location'];
@@ -299,11 +300,12 @@ class WolfAndSheeps extends Table
         $result = array();
         
         $token = self::dbGetToken($tokenId); 
-        if(! $token) throw new BgaVisibleSystemException( ("Unknown token"));
+        if(! $token) throw new BgaVisibleSystemException( ("Unknown token")); // NOI18N 
     
         $token_location = $token['location'];
         $token_color = $token['color'];
-        $this->dump('getPossibleMovesForToken() :', $token);
+        
+        $this->dump('getPossibleMovesForToken() :', $token); // NOI18N 
         
         if($token_color == SHEEP_COLOR){//Only the sheep can move from row N to N+1 (backward for wolves)
             $this->addPossiblePositionInArray($result, $token_location, 1,1 );
@@ -312,8 +314,8 @@ class WolfAndSheeps extends Table
         //all can move from row N to N-1 (forward for wolves) :
         $this->addPossiblePositionInArray($result, $token_location, -1,1 );
         $this->addPossiblePositionInArray($result, $token_location, -1,-1 );
-            
-        $this->dump('getPossibleMovesForToken() : result ', $result);
+        
+        $this->dump('getPossibleMovesForToken() : result ', $result); // NOI18N 
         
         return $result;
     }
@@ -380,14 +382,31 @@ class WolfAndSheeps extends Table
     */
     public function playToken($tokenId, $dest)
     {
-        $player_id = self::getActivePlayerId();
+        $this->trace("playToken($tokenId, $dest)");
+        self::checkAction( 'playToken' ); 
         
+        $player_id = self::getActivePlayerId();
         $token = $this->dbGetToken($tokenId);
-        $this->dbUpdateAllTokenState(TOKEN_STATE_RESET);
-        $this->dbUpdateTokenLocation($tokenId,$dest);
         
         $token_origin = $token['location'];
         $token_color = $token['color'];
+        
+        //ANTICHEAT CHECKS :
+        $possibleMoves = $this->getPossibleMoves($player_id);
+        if (!array_key_exists($token_origin, $possibleMoves))
+        {
+            throw new BgaVisibleSystemException( ("You cannot move this token")); // NOI18N 
+        }
+        $possibleDest = $possibleMoves[$token_origin];
+        //$this->dump("playToken($tokenId, $dest)...  possibleDest= ",$possibleDest);
+        if (array_search($dest, $possibleDest ) === FALSE)
+        {
+            throw new BgaVisibleSystemException( ("You cannot move that token to this place")); // NOI18N 
+        }
+        
+        //REAL ACTION :
+        $this->dbUpdateAllTokenState(TOKEN_STATE_RESET);
+        $this->dbUpdateTokenLocation($tokenId,$dest);
         
         if( $this->isBackwardMove($token_origin, $dest,$token_color)){
             self::incStat(1,'moves_backward',$player_id);

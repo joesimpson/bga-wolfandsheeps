@@ -25,7 +25,7 @@ $gameinfos = array(
 'year' => 0,                 
 
 // Game publisher (use empty string if there is no publisher)
-'publisher' => '',                     
+'publisher' => '(Public Domain)',                     
 
 // Url of game publisher website
 'publisher_website' => '',   
@@ -136,6 +136,7 @@ $gameinfos = array(
     totranslate("The game is played on a chess board sized 8x8 starting with 4 similar colored checkers (the hounds) on one side and a single checker in other color (the fox) on the other side."),
     totranslate("The hounds hunt the fox. The fox moves diagonally one field range forward or backward onto an empty adjacent square per turn. Hounds can only move diagonally one field forward onto an empty adjacent square. There is no capturing by jumping and no stacking of checkers."),
     totranslate("Fox wins by reaching the other side of the board. Hounds win by blocking the fox such that it cannot move anymore."),
+    totranslate("A simple game to teach children."),
 ),
 
 //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
