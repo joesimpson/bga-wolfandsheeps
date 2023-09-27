@@ -163,3 +163,13 @@
     */
     outline: 5px solid white;
 }
+
+
+
+/*** FIX BGA 3D mode clicks : **/
+.mode_3d #game_play_area_wrap {
+    pointer-events: none;
+ }
+ #wsh_game_zone {
+    pointer-events: all;
+ }
