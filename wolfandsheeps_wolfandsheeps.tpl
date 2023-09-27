@@ -10,8 +10,6 @@
 -->
 
 <div id="wsh_game_zone">
-    <!-- TODO JSA Display this board from the player point of view (black on top if viewed by white...) -->
-
 
     <!-- Inspired by BGA Chess Board implementation by ecolin -->
     

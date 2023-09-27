@@ -75,18 +75,22 @@ class WolfAndSheeps extends Table
  
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, player_no) VALUES ";
         $values = array();
         foreach( $players as $player_id => $player )
         {
             $color = array_shift( $default_colors );
             
-            if( $color == WOLF_COLOR )
+            if( $color == WOLF_COLOR ){
                 $blackplayer_id = $player_id;
-            else
+                $player_order = 2;
+            }
+            else {
                 $whiteplayer_id = $player_id;
+                $player_order = 1; //WHITE PLAYER STARTS !
+            }
             
-            $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
+            $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."','" .	$player_order . "')";
         }
         $sql .= implode( ',', $values );
         self::DbQuery( $sql );
