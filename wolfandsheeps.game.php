@@ -361,6 +361,7 @@ class WolfAndSheeps extends Table
     }
     
     function isCurrentPlayerSheep () {
+        if(self::isSpectator() ) return false;
         return self::getCurrentPlayerColor() == SHEEP_COLOR;
     }
     
