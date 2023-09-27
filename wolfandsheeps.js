@@ -50,15 +50,11 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup",gamedatas );
             
-            // Setting up player boards
-            for( var player_id in gamedatas.players )
-            {
-                var player = gamedatas.players[player_id];
-                         
-                // TODO: Setting up players boards if needed
+            if (this.prefs[100].value == 2){//Board colors set to reverse
+                this.toggleCellLight();
             }
             
-            // TODO: Set up your game interface here, according to "gamedatas"
+            // Set up your game interface here, according to "gamedatas"
             
             for( let i in gamedatas.board ){
                 let token = gamedatas.board[i];
@@ -195,6 +191,14 @@ function (dojo, declare) {
         },
         
         //// Other Utility methods ------------------------
+        toggleCellLight: function( $tokenId )
+        {
+            //The VIEW generate cells style for default option, but we can toggle it if we want
+            dojo.query(".wsh_cell_dark").replaceClass("wsh_cell_dark_TMP", "wsh_cell_dark");
+            dojo.query(".wsh_cell_light").replaceClass("wsh_cell_dark", "wsh_cell_light"); 
+            dojo.query(".wsh_cell_dark_TMP").replaceClass("wsh_cell_light", "wsh_cell_dark_TMP"); 
+        },
+        
         updateLastMove: function( $tokenId )
         {
             dojo.query( '.wsh_token' ).removeClass( 'wsh_lastMove' );

@@ -56,3 +56,23 @@ $game_options = array(
 );
 
 
+$game_preferences = array(
+    100 => array(
+            'name' => totranslate('Board colors'),
+            'needReload' => true, // after user changes this preference game interface would auto-reload
+            'values' => array(
+                    1 => array( 'name' => totranslate( 'Tokens on dark cells' ), 'cssPref' => 'wsh_tokens_on_dark' ),
+                    2 => array( 'name' => totranslate( 'Tokens on light cells' ), 'cssPref' => 'wsh_tokens_on_light' )
+            ),
+            'default' => 1
+    ),
+    101 => array(
+            'name' => totranslate('Interface theme'),
+            'needReload' => true, // after user changes this preference game interface would auto-reload
+            'values' => array(
+                    1 => array( 'name' => totranslate( 'Standard' ), 'cssPref' => 'wsh_theme_standard' ),
+                    2 => array( 'name' => totranslate( 'Darker' ), 'cssPref' => 'wsh_theme_dark' )
+            ),
+            'default' => 1
+    ),
+);

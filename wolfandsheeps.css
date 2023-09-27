@@ -63,14 +63,25 @@
   --wsh_cell_size: 62px;
 }
 
+.wsh_theme_dark #overall-content
+{
+    /** overall-content is the BGA page  */
+    background: #000000bf;
+}
+.wsh_theme_dark #wsh_game_zone{
+    color: white;
+}
+
 /* WHITE */
 .wsh_token_ffffff{
    background-position: 000% 000%;
+   filter: drop-shadow(0px 0px 2px #000);
 }
 
 /* BLACK */
 .wsh_token_000000{	
    background-position: 100% 000%;
+   filter: drop-shadow(0px 0px 2px #fff);
 }
 
 .wsh_token{	
@@ -150,7 +161,6 @@
 }
 
 .wsh_coordinate {
-    color: #000;
     font-family: Arial,Verdana;
     font-size: 13px;
     font-weight: 400;
@@ -161,7 +171,7 @@
     /**
     these 2 classes should not happen at the same time except with zombie
     */
-    outline: 5px solid white;
+    outline: 3px solid white;
 }
 
 
