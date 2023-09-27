@@ -157,6 +157,9 @@
     position: absolute
 }
 
-.wsh_lastMove{
+.wsh_lastMove:not(.wsh_possibleMoveFrom){
+    /**
+    these 2 classes should not happen at the same time except with zombie
+    */
     outline: 5px solid white;
 }

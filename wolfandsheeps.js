@@ -402,9 +402,10 @@ function (dojo, declare) {
             let tokenDivId = tokenId;
             let destinationDivId ="wsh_cell_"+destination;
             this.attachToNewParentNoDestroy(tokenDivId, destinationDivId);
+            dojo.attr(tokenDivId, "data_location", destination);
             let anim = this.slideToObject(tokenDivId,destinationDivId,1000);
             dojo.connect(anim, 'onEnd', function(node){
-                dojo.attr(node, "data_location", destination);
+                //dojo.attr(node, "data_location", destination); // TOO LATE when playing alone with zombie ?
                 //To avoid offset of some px calculated after sliding:
                 dojo.style(node,"left","0");
                 dojo.style(node,"top","0");

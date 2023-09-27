@@ -69,7 +69,7 @@ $machinestates = array(
         "args" => "argPlayerTurn",
         "updateGameProgression" => true,
         "possibleactions" => array( "playToken" ),
-        "transitions" => array( "moveToken" => 11 )
+        "transitions" => array( "moveToken" => 11, "zombiePass"=>11 )
     ),
     
     11 => array(
