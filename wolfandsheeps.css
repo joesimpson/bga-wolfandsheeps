@@ -142,24 +142,57 @@
 }
 .wsh_possibleMoveFrom{
     cursor: pointer;
-    border-radius: 100%;
-    outline: 5px dashed yellow;
+    /*border-radius: 100%;*/
+    /*outline: 5px solid yellow;*/
+}
+
+/** Some 'hack' to replace the use of border-radius and outline on same elt (not working on some Safari ipad etc...) : use a border before / after the element */
+.wsh_possibleMoveFrom::after {
+   content: '';
+   position: absolute;
+   left: -5px;
+   top: -5px;
+   right: -5px;
+   bottom: -5px;
+   border-radius: 50%;
+   border: 5px solid yellow;
+}
+.wsh_possibleMoveFromHere::after {
     -webkit-animation: wsh_rotate 12s linear infinite;
+    border-style: dashed;
+}
+.wsh_possibleMoveTo::after {
+   content: '';
+   position: absolute;
+   left: -4px;
+   top: -4px;
+   right: -4px;
+   bottom: -4px;
+   border-radius: 50%;
+   border: 4px solid lightblue;
+}
+
+.wsh_possibleMoveFromHere{
+    /* 
+    -webkit-animation: wsh_rotate 12s linear infinite;
+    outline-style: dashed; 
+    */
     /** To se outline rotating outside cell */
     z-index: 2;
 }
-.wsh_possibleMoveFromHere{
-    outline-style: solid;
-}
+
 .wsh_possibleMoveTo{ 
+    /*
     border-radius: 100%;
-    cursor: pointer;
     outline: 4px solid lightblue;
+    */
+    cursor: pointer;
     width: 80%;
     height: 80%;
     margin: 10%;
 }
 
+/* Rotating circle : */
 @-webkit-keyframes wsh_rotate {
   from{ -webkit-transform: rotate(0deg);   }
   to{   -webkit-transform: rotate(360deg); }
@@ -178,8 +211,6 @@
     */
     outline: 3px solid white;
 }
-
-
 
 /*** FIX BGA 3D mode clicks : **/
 .mode_3d #game_play_area_wrap {
