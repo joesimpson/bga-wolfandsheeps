@@ -13,7 +13,7 @@
 $gameinfos = array( 
 
 // Name of the game in English (will serve as the basis for translation) 
-'game_name' => "Fox and Hounds",
+'game_name' => "Wolf and Sheep",
 
 // Game designer (or game designers, separated by commas)
 'designer' => '',       
@@ -132,11 +132,12 @@ $gameinfos = array(
 // Each paragraph must be wrapped with totranslate() for translation and should not contain html (plain text without formatting).
 // A good length for this text is between 100 and 150 words (about 6 to 9 lines on a standard display)
 'presentation' => array(
-    totranslate("There are many alternate names: Fox and Hounds, Fox and Geese, Fox and Dogs, Wolf and Sheep, Hounds and Hare or Devil and Tailors. In Dutch it is called Kat en Muizen."),
-    totranslate("The game is played on a chess board sized 8x8 starting with 4 similar colored checkers (the hounds) on one side and a single checker in other color (the fox) on the other side."),
-    totranslate("The hounds hunt the fox. The fox moves diagonally one field range forward or backward onto an empty adjacent square per turn. Hounds can only move diagonally one field forward onto an empty adjacent square. There is no capturing by jumping and no stacking of checkers."),
-    totranslate("Fox wins by reaching the other side of the board. Hounds win by blocking the fox such that it cannot move anymore."),
-    totranslate("A simple game to teach children."),
+    totranslate("There are many alternate names: Fox and Hounds, Fox and Geese, Fox and Dogs, Wolf and Sheep, Hounds and Hare or Devil and Tailors."),
+    totranslate("The game is played on a chess board sized 8x8 starting with 4 black checkers (the wolves) on one side and a single white checker (the sheep) on the other side."),
+    totranslate("The wolves hunt the sheep. The sheep moves diagonally one field range forward or backward onto an empty adjacent square per turn. Wolves can only move diagonally one field forward onto an empty adjacent square."),
+    totranslate("There is no capturing by jumping and no stacking of checkers."),
+    totranslate("Sheep wins by reaching the other side of the board. Wolves win by blocking the sheep such that it cannot move anymore."),
+    totranslate("A simple game to teach children (as it is actually done in schools)."),
 ),
 
 //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
