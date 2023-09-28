@@ -15,6 +15,12 @@
  *
  */
 
+
+//debug() LOG MANAGEMENT, as seen on tisaac's BGA Games
+var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
+var debug = isDebug ? console.info.bind(window.console) : function () {};
+
+
 define([
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
@@ -23,7 +29,7 @@ define([
 function (dojo, declare) {
     return declare("bgagame.wolfandsheeps", ebg.core.gamegui, {
         constructor: function(){
-            console.log('wolfandsheeps constructor');
+            debug('wolfandsheeps constructor');
               
             // Here, you can init the global variables of your user interface
             // Example:
@@ -48,7 +54,7 @@ function (dojo, declare) {
         
         setup: function( gamedatas )
         {
-            console.log( "Starting game setup",gamedatas );
+            debug( "Starting game setup",gamedatas );
             
             if (this.prefs[100].value == 2){//Board colors set to reverse
                 this.toggleCellLight();
@@ -69,7 +75,7 @@ function (dojo, declare) {
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
-            console.log( "Ending game setup" );
+            debug( "Ending game setup" );
         },
        
 
@@ -81,12 +87,12 @@ function (dojo, declare) {
         //
         onEnteringState: function( stateName, args )
         {
-            console.log( 'Entering state: '+stateName );
+            debug( 'Entering state: '+stateName );
             
             switch( stateName )
             {
             case 'playerTurn':
-                console.log( 'possibleMoves: ',args.args.possibleMoves );
+                debug( 'possibleMoves: ',args.args.possibleMoves );
                 if(args.active_player == this.player_id){
                     this.updatePossibleMoves( args.args.possibleMoves );
                 }
@@ -100,7 +106,7 @@ function (dojo, declare) {
         //
         onLeavingState: function( stateName )
         {
-            console.log( 'Leaving state: '+stateName );
+            debug( 'Leaving state: '+stateName );
             
             switch( stateName )
             {
@@ -116,7 +122,7 @@ function (dojo, declare) {
         //        
         onUpdateActionButtons: function( stateName, args )
         {
-            console.log( 'onUpdateActionButtons: '+stateName );
+            debug( 'onUpdateActionButtons: '+stateName );
                       
             if( this.isCurrentPlayerActive() )
             {            
@@ -224,7 +230,7 @@ function (dojo, declare) {
                 /*
                 let divPlace = "wsh_cell_"+origin;
                 if($(divPlace) == null){
-                    console.log( "Cannot place possibleMove on not found cell ",divPlace, origin );
+                    debug( "Cannot place possibleMove on not found cell ",divPlace, origin );
                     return null;
                 }
                 */
@@ -248,7 +254,7 @@ function (dojo, declare) {
             */
             let divPlace = "wsh_cell_"+coord;
             if($(divPlace) == null){
-                console.log( "Cannot place token on not found cell ",divPlace, coord );
+                debug( "Cannot place token on not found cell ",divPlace, coord );
                 return;
             }
         
@@ -282,7 +288,7 @@ function (dojo, declare) {
         */
         onPlayToken: function( evt )
         {
-            console.log("onPlayToken",evt);
+            debug("onPlayToken",evt);
             // Stop this event propagation
             evt.preventDefault();
             dojo.stopEvent( evt );
@@ -307,7 +313,7 @@ function (dojo, declare) {
         */
         onSelectMoveOrigin: function( evt )
         {
-            console.log("onSelectMoveOrigin",evt);
+            debug("onSelectMoveOrigin",evt);
             // Stop this event propagation
             evt.preventDefault();
             dojo.stopEvent( evt );
@@ -328,7 +334,7 @@ function (dojo, declare) {
             if(this.displayedPossibleMovesOrigin == origin ){
                 //IF ALREADY DISPLAYED , hide
                 this.displayedPossibleMovesOrigin = null;
-                console.log("onSelectMoveOrigin() => Hide :",origin);
+                debug("onSelectMoveOrigin() => Hide :",origin);
                 return;
             } //ELSE continue to SHOW
             
@@ -341,7 +347,7 @@ function (dojo, declare) {
                 let target = moves[i];
                 let targetId = "wsh_cell_"+target;
                 if($(targetId) == null){
-                    console.log( "Cannot place move on not found cell ",targetId, target );
+                    debug( "Cannot place move on not found cell ",targetId, target );
                     continue;
                 }
                 dojo.addClass( targetId , 'wsh_possibleMoveTo' ); 
@@ -352,7 +358,7 @@ function (dojo, declare) {
                 //this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
             }
             
-            console.log("onSelectMoveOrigin() => moves :",moves);
+            debug("onSelectMoveOrigin() => moves :",moves);
         },
 
         
@@ -370,7 +376,7 @@ function (dojo, declare) {
         */
         setupNotifications: function()
         {
-            console.log( 'notifications subscriptions setup' );
+            debug( 'notifications subscriptions setup' );
             
             // TODO: here, associate your game notifications with local methods
             
@@ -393,7 +399,7 @@ function (dojo, declare) {
         
         notif_tokenPlayed: function( notif )
         {
-            console.log( 'notif_tokenPlayed', notif );
+            debug( 'notif_tokenPlayed', notif );
             
             let tokenId = notif.args.tokenId;
             let destination = notif.args.dest;
