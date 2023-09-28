@@ -44,12 +44,8 @@ class WolfAndSheeps extends Table
         parent::__construct();
         
         self::initGameStateLabels( array( 
-                "wsh_line_max" => 10,
-            //    "my_second_global_variable" => 11,
-            //      ...
-            //    "my_first_game_variant" => 100,
-            //    "my_second_game_variant" => 101,
-            //      ...
+            "wsh_line_max" => 10,
+            
             "variant_BoardSize" => 100,
         ) );        
 	}
@@ -155,7 +151,7 @@ class WolfAndSheeps extends Table
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
   
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        // Gather all information about current game situation (visible by player $current_player_id).
         
         $result['board'] = self::getObjectListFromDB(   self::getSQLSelectTOKEN() );
   
@@ -268,10 +264,16 @@ class WolfAndSheeps extends Table
                     SUBSTRING(token_location FROM 2 FOR 2) coord_row 
                 FROM token ";
     }
+    /**
+    Return token identified
+    */
     function dbGetToken($token_key){
         $sql = self::getSQLSelectTOKEN()." WHERE token_key='$token_key'" ;
         return self::getObjectFromDB( $sql ); 
     }
+    /**
+    Return token on the specied location if it exists
+    */
     function dbGetTokenOnLocation($token_location){
         $sql = self::getSQLSelectTOKEN()." WHERE token_location='$token_location'" ;
         return self::getObjectFromDB( $sql ); 
@@ -285,7 +287,9 @@ class WolfAndSheeps extends Table
         return self::getObjectListFromDB( $sql ); 
     }
      
-    
+    /**
+    Move the token $tokenId to the new location $dest
+    */
     function dbUpdateTokenLocation($tokenId,$dest){
         $newState = TOKEN_STATE_MOVED;
         self::DbQuery("UPDATE token SET token_location='$dest', token_state='$newState' WHERE token_key = '$tokenId' ");
@@ -317,7 +321,7 @@ class WolfAndSheeps extends Table
         $color = self::getPlayerColorById( $player_id );
         $tokens = $this->dbGetPlayerTokens($color );
        
-        $this->dump("getPossibleMoves($player_id ) color $color:", $tokens); // NOI18N 
+        //$this->dump("getPossibleMoves($player_id ) color $color:", $tokens); // NOI18N 
         
         foreach( $tokens as $token){
             $origin = $token['location'];
@@ -345,7 +349,7 @@ class WolfAndSheeps extends Table
         $token_location = $token['location'];
         $token_color = $token['color'];
         
-        $this->dump('getPossibleMovesForToken() :', $token); // NOI18N 
+        //$this->dump('getPossibleMovesForToken() :', $token); // NOI18N 
         
         if($token_color == SHEEP_COLOR){//Only the sheep can move from row N to N+1 (backward for wolves)
             $this->addPossiblePositionInArray($result, $token_location, 1,1 );
@@ -355,7 +359,7 @@ class WolfAndSheeps extends Table
         $this->addPossiblePositionInArray($result, $token_location, -1,1 );
         $this->addPossiblePositionInArray($result, $token_location, -1,-1 );
         
-        $this->dump('getPossibleMovesForToken() : result ', $result); // NOI18N 
+        //$this->dump('getPossibleMovesForToken() : result ', $result); // NOI18N 
         
         return $result;
     }
@@ -403,6 +407,9 @@ class WolfAndSheeps extends Table
         return false;
     }
     
+    /**
+    Return true if current player is the "Sheep" (== the white player)
+    */
     function isCurrentPlayerSheep () {
         if(self::isSpectator() ) return false;
         return self::getCurrentPlayerColor() == SHEEP_COLOR;
@@ -481,23 +488,6 @@ class WolfAndSheeps extends Table
         Here, you can create methods defined as "game state arguments" (see "args" property in states.inc.php).
         These methods function is to return some additional information that is specific to the current
         game state.
-    */
-
-    /*
-    
-    Example for game state "MyGameState":
-    
-    function argMyGameState()
-    {
-        // Get some values from the current game situation in database...
-    
-        // return values:
-        return array(
-            'variable1' => $value1,
-            'variable2' => $value2,
-            ...
-        );
-    }    
     */
     
     function argPlayerTurn(){

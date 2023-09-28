@@ -49,6 +49,16 @@
 
 //    !! It is not a good idea to modify this file when a game is running !!
 
+
+/*
+ Simple States  DIAGRAM :
+             
+    SETUP --> playerTurn --> nextPlayer --> END 
+                ^             |
+                |             |
+                \-------------/
+             
+*/
  
 $machinestates = array(
 
