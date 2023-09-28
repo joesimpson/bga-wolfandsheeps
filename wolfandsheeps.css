@@ -84,6 +84,13 @@
    filter: drop-shadow(0px 0px 2px #fff);
 }
 
+/** Don't put shadow on mobile or Safari with slow moving animation */
+.dj_safari .wsh_token,
+.mobile_version .wsh_token
+{
+   filter: none;
+}
+
 .wsh_token{	
    width: var(--wsh_cell_size);
    height: var(--wsh_cell_size);
