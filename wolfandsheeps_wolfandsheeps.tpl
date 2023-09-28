@@ -50,7 +50,6 @@
 // Javascript HTML templates
 
 var jstpl_wsh_token='<div id="${T_ID}" class="wsh_token wsh_token_${T_COLOR} " data_location="${T_LOCATION}"></div>';
-//data_row="${T_ROW}" data_col="${T_COLUMN}" 
 
 </script>  
 

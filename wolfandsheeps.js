@@ -32,11 +32,8 @@ function (dojo, declare) {
             debug('wolfandsheeps constructor');
               
             // Here, you can init the global variables of your user interface
-            // Example:
-            // this.myGlobalValue = 0;
             this.allPossibleMoves = [];
             this.displayedPossibleMovesOrigin = null;
-            //this.onSelectMoveOriginHandler = [];
         },
         
         /*
@@ -111,7 +108,6 @@ function (dojo, declare) {
             switch( stateName )
             {
             case 'playerTurn':
-                //for(let i in this.onSelectMoveOriginHandler) dojo.disconnect(this.onSelectMoveOriginHandler[i]);
                 this.updatePossibleMoves( [] );
                 break;
             }               
@@ -128,18 +124,7 @@ function (dojo, declare) {
             {            
                 switch( stateName )
                 {
-/*               
-                 Example:
- 
-                 case 'myGameState':
-                    
-                    // Add 3 action buttons in the action status bar:
-                    
-                    this.addActionButton( 'button_1_id', _('Button 1 label'), 'onMyMethodToCall1' ); 
-                    this.addActionButton( 'button_2_id', _('Button 2 label'), 'onMyMethodToCall2' ); 
-                    this.addActionButton( 'button_3_id', _('Button 3 label'), 'onMyMethodToCall3' ); 
-                    break;
-*/
+
                 }
             }
         },        
@@ -186,6 +171,7 @@ function (dojo, declare) {
             return box;
         },
         ajaxcallwrapper: function(action, args, handler) {
+            debug("ajaxcallwrapper()",action,args);
             if (!args) {
                 args = {};
             }
@@ -197,48 +183,40 @@ function (dojo, declare) {
         },
         
         //// Other Utility methods ------------------------
-        toggleCellLight: function( $tokenId )
+        toggleCellLight: function( )
         {
+            debug("toggleCellLight()");
             //The VIEW generate cells style for default option, but we can toggle it if we want
             dojo.query(".wsh_cell_dark").replaceClass("wsh_cell_dark_TMP", "wsh_cell_dark");
             dojo.query(".wsh_cell_light").replaceClass("wsh_cell_dark", "wsh_cell_light"); 
             dojo.query(".wsh_cell_dark_TMP").replaceClass("wsh_cell_light", "wsh_cell_dark_TMP"); 
         },
         
-        updateLastMove: function( $tokenId )
+        updateLastMove: function( tokenId )
         {
+            debug("updateLastMove()",tokenId);
             dojo.query( '.wsh_token' ).removeClass( 'wsh_lastMove' );
-            dojo.addClass( $tokenId,'wsh_lastMove' ); 
+            dojo.addClass( tokenId,'wsh_lastMove' ); 
         },
         
         updatePossibleMoves: function( possibleMoves )
         {
+            debug("updatePossibleMoves()",possibleMoves);
             // Remove current possible moves
             dojo.query( '.wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFromHere' );
-            //this.disconnect( $('.wsh_possibleMoveTo'), 'click');
             dojo.query( '.wsh_possibleMoveTo' ).removeClass( 'wsh_possibleMoveTo' ) ;
             dojo.query(".wsh_token" ).forEach(  (node)=> { 
                 this.removeTooltip(node.id);
-                //?? dojo.disconnect(node, 'click');
             })  ; 
             
             this.allPossibleMoves = possibleMoves;
             
             for( let origin in possibleMoves )
             {
-                let moves = possibleMoves[origin];
-                /*
-                let divPlace = "wsh_cell_"+origin;
-                if($(divPlace) == null){
-                    debug( "Cannot place possibleMove on not found cell ",divPlace, origin );
-                    return null;
-                }
-                */
                 let nodes = dojo.query(".wsh_token[data_location='"+origin+"']");
                 let node = nodes[0];
                 if(node !=undefined  ) {
                     dojo.addClass( node.id , 'wsh_possibleMoveFrom' ); 
-                    //this.onSelectMoveOriginHandler[origin] = dojo.connect(node, 'onclick', this, 'onSelectMoveOrigin' );
                 }
             }
             
@@ -248,10 +226,7 @@ function (dojo, declare) {
         },
         
         addTokenOnBoard: function( id, color,coord ) {
-            /*
-            let row = coord_row -1;
-            let col = "ABCDEFGHIJ".indexOf(coord_col);
-            */
+            debug( "addTokenOnBoard",id, color,coord );
             let divPlace = "wsh_cell_"+coord;
             if($(divPlace) == null){
                 debug( "Cannot place token on not found cell ",divPlace, coord );
@@ -264,8 +239,6 @@ function (dojo, declare) {
                     {
                         T_ID : id,
                         T_COLOR : color,
-                        //T_ROW : row,
-                        //T_COLUMN: col,
                         T_LOCATION : coord,
                     }
                 ),
@@ -294,7 +267,6 @@ function (dojo, declare) {
             dojo.stopEvent( evt );
 
             let token_id = evt.currentTarget.getAttribute("data_token_id") ;
-            //let dest= evt.currentTarget.getAttribute("data_location") ;
             //Now it's in cell id "wsh_cell_D5"
             let dest= evt.currentTarget.id.split("_")[2];
 
@@ -329,7 +301,6 @@ function (dojo, declare) {
             dojo.query( '.wsh_possibleMoveFromHere' ).removeClass( 'wsh_possibleMoveFromHere' );
             
             let displayedMoves = dojo.query( '.wsh_possibleMoveTo' );
-            //this.disconnect(displayedMoves, 'click');
             displayedMoves.removeClass( 'wsh_possibleMoveTo' ); 
             if(this.displayedPossibleMovesOrigin == origin ){
                 //IF ALREADY DISPLAYED , hide
@@ -352,7 +323,6 @@ function (dojo, declare) {
                 }
                 dojo.addClass( targetId , 'wsh_possibleMoveTo' ); 
                 dojo.attr(targetId, "data_token_id", token_id);
-                
                 
                 //TODO JSA see how to display this tooltip without adding a "click" event listener...
                 //this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
@@ -377,25 +347,14 @@ function (dojo, declare) {
         setupNotifications: function()
         {
             debug( 'notifications subscriptions setup' );
-            
-            // TODO: here, associate your game notifications with local methods
-            
-            // Example 1: standard notification handling
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            
-            // Example 2: standard notification handling + tell the user interface to wait
-            //            during 3 seconds after calling the method in order to let the players
-            //            see what is happening in the game.
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-            // 
+            // here, associate your game notifications with local methods
             
             dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
             dojo.subscribe( 'sheepWins', this, "notif_sheepWins" );
             dojo.subscribe( 'winByBlocking', this, "notif_winByBlocking" );
         },  
         
-        // TODO: from this point and below, you can write your game notifications handling methods
+        // from this point and below, you can write your game notifications handling methods
         
         notif_tokenPlayed: function( notif )
         {
@@ -405,9 +364,6 @@ function (dojo, declare) {
             let destination = notif.args.dest;
             let color = notif.args.color;
             
-            //Do want to create NEw Token ? 
-            //this.addTokenOnBoard(tokenId, color,destination);
-            
             //Animation to move existing token to dest :
             let tokenDivId = tokenId;
             let destinationDivId ="wsh_cell_"+destination;
@@ -415,10 +371,13 @@ function (dojo, declare) {
             dojo.attr(tokenDivId, "data_location", destination);
             let anim = this.slideToObject(tokenDivId,destinationDivId,1000);
             dojo.connect(anim, 'onEnd', function(node){
+                debug( 'anim onEnd', node );
                 //dojo.attr(node, "data_location", destination); // TOO LATE when playing alone with zombie ?
                 //To avoid offset of some px calculated after sliding:
-                dojo.style(node,"left","0");
-                dojo.style(node,"top","0");
+                if(node != undefined){// Happens in 3d ?
+                    dojo.style(node,"left","0");
+                    dojo.style(node,"top","0");
+                }
             });
             anim.play();
             this.updateLastMove(tokenId);
@@ -426,11 +385,13 @@ function (dojo, declare) {
         
         notif_sheepWins: function( notif )
         {
+            debug( "notif_sheepWins",notif );
             //Update player panel score
             this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
         },
         notif_winByBlocking: function( notif )
         {
+            debug( "notif_winByBlocking",notif );
             //Update player panel score
             this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
         },
