@@ -72,6 +72,23 @@
     color: white;
 }
 
+/* BGA - PLAYER PANEL  */
+.wsh_theme_dark .player-board{
+    /** Keep the framework background-color, but add alpha (opacity 50%)*/
+    background-color: #ebd5bd7d;
+    /*color: white;*/
+}
+/** Add a WHITE shadow behind player name in case of dark color (black)*/
+.wsh_theme_dark .player_board_inner>.player-name>a:first-child{
+    text-shadow: 1px 1px 5px white;
+}
+/** Add a BLACK shadow behind player name in case of bright colors like white/orange*/
+.wsh_theme_dark .player_board_inner>.player-name>a[style='color: #ffffff'],
+.wsh_theme_standard .player_board_inner>.player-name>a[style='color: #ffffff']
+{
+    text-shadow: 1px 1px 5px black;
+}
+
 /* WHITE */
 .wsh_token_ffffff{
    background-position: 000% 000%;
