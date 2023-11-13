@@ -56,4 +56,13 @@ $game_preferences = array(
             ),
             'default' => 1
     ),
+    102 => array(
+            'name' => totranslate('Auto confirm turn'),
+            'needReload' => true, // after user changes this preference game interface would auto-reload
+            'values' => array(
+                    1 => array( 'name' => totranslate( 'Enabled' ), 'cssPref' => 'wsh_pref_auto_confirm_yes' ),
+                    2 => array( 'name' => totranslate( 'Disabled' ), 'cssPref' => 'wsh_pref_auto_confirm_no' )
+            ),
+            'default' => 1
+    ),
 );

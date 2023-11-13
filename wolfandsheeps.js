@@ -34,6 +34,8 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             this.allPossibleMoves = [];
             this.displayedPossibleMovesOrigin = null;
+            
+            this.doAutoConfirm = true;
         },
         
         /*
@@ -55,6 +57,9 @@ function (dojo, declare) {
             
             if (this.prefs[100].value == 2){//Board colors set to reverse
                 this.toggleCellLight();
+            }
+            if (this.prefs[102].value == 2){//Auto confirm disabled
+                this.doAutoConfirm = false;
             }
             
             // Set up your game interface here, according to "gamedatas"
@@ -276,7 +281,15 @@ function (dojo, declare) {
                 return ;
             }
             
-            this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );            
+            if(!this.doAutoConfirm) {
+                this.confirmationDialog(_("Are you sure ?"), () => {
+                    this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );  
+                });
+                return;
+            }
+            else {
+                this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );     
+            }
         },
         
         
