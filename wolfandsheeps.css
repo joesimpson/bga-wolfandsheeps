@@ -196,6 +196,11 @@
    border: 4px solid lightblue;
 }
 
+.wsh_chosenMoveTo::after{
+   border: 4px solid blue;
+   animation: wsh_blinker 1s linear infinite;
+}
+
 .wsh_possibleMoveFromHere{
     /* 
     -webkit-animation: wsh_rotate 12s linear infinite;
@@ -220,6 +225,12 @@
 @-webkit-keyframes wsh_rotate {
   from{ -webkit-transform: rotate(0deg);   }
   to{   -webkit-transform: rotate(360deg); }
+}
+
+@keyframes wsh_blinker {
+    50% {
+        opacity: 0;
+    }
 }
 
 .wsh_coordinate {

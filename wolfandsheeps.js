@@ -36,6 +36,7 @@ function (dojo, declare) {
             this.displayedPossibleMovesOrigin = null;
             
             this.doAutoConfirm = true;
+            this.datasToConfirm = {};
         },
         
         /*
@@ -98,6 +99,7 @@ function (dojo, declare) {
                 if(args.active_player == this.player_id){
                     this.updatePossibleMoves( args.args.possibleMoves );
                 }
+                this.cleanChosenMoveToConfirm();
                 break;
             }
            
@@ -129,6 +131,11 @@ function (dojo, declare) {
             {            
                 switch( stateName )
                 {
+                    case 'playerTurn':
+                        if(!this.doAutoConfirm) {
+                            this.addActionButton( 'wsh_button_confirm', _('Confirm'), 'onButtonConfirm' ); 
+                        }
+                        break;
 
                 }
             }
@@ -251,6 +258,11 @@ function (dojo, declare) {
             ); 
         },
         
+        cleanChosenMoveToConfirm: function(){
+            dojo.query(".wsh_chosenMoveTo").removeClass("wsh_chosenMoveTo wsh_token wsh_token_000000 wsh_token_ffffff");
+            this.datasToConfirm = {};
+        },
+        
         ///////////////////////////////////////////////////
         //// Player's action
         
@@ -280,18 +292,40 @@ function (dojo, declare) {
                 // This is not a possible move => the click does nothing
                 return ;
             }
+            this.cleanChosenMoveToConfirm();
             
+            let playerColor = this.gamedatas.players[this.player_id].color;
+            
+            evt.currentTarget.classList.add("wsh_chosenMoveTo");
+            evt.currentTarget.classList.add("wsh_token");
+            evt.currentTarget.classList.add("wsh_token_"+playerColor);
+                
             if(!this.doAutoConfirm) {
-                this.confirmationDialog(_("Are you sure ?"), () => {
-                    this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );  
-                });
+                this.datasToConfirm = {'token_id':token_id, 'dest':dest };
                 return;
             }
             else {
-                this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );     
+                this.ajaxcallwrapper( "playToken",{id: token_id, dest: dest} );
             }
         },
-        
+        /**
+        Confirm the action
+        */
+        onButtonConfirm: function(evt){
+            debug("onButtonConfirm",evt);
+            // Stop this event propagation
+            evt.preventDefault();
+            dojo.stopEvent( evt );
+            
+            if(this.datasToConfirm.token_id == undefined){
+                return;
+            }
+            if(this.datasToConfirm.dest == undefined){
+                return;
+            }
+            
+            this.ajaxcallwrapper( "playToken",{id: this.datasToConfirm.token_id, dest: this.datasToConfirm.dest} );
+        },
         
         /**
         Toggle display of possible moves from this place
@@ -312,6 +346,7 @@ function (dojo, declare) {
                 return ;
             }
             dojo.query( '.wsh_possibleMoveFromHere' ).removeClass( 'wsh_possibleMoveFromHere' );
+            this.cleanChosenMoveToConfirm();
             
             let displayedMoves = dojo.query( '.wsh_possibleMoveTo' );
             displayedMoves.removeClass( 'wsh_possibleMoveTo' ); 
@@ -343,7 +378,7 @@ function (dojo, declare) {
             
             debug("onSelectMoveOrigin() => moves :",moves);
         },
-
+        
         
         ///////////////////////////////////////////////////
         //// Reaction to cometD notifications
