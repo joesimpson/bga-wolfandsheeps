@@ -193,6 +193,10 @@ class WolfAndSheeps extends Table
         
         $progress = $currentMoves / $nbMaxMoves *100;
         
+        //If we want players to be able to concede at any time (like Chess, xiangqi and some others ), it must be >=50
+        $minProgress = 50;
+        $progress = $minProgress + $progress / (100 / $minProgress);
+        
         return $progress;
     }
 
