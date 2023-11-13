@@ -243,3 +243,9 @@
  #wsh_game_zone {
     pointer-events: all;
  }
+ 
+/* ---------------------------- ----------------------------   ---------------------------- */
+/* Re enable list style over BGA common CSS, only for wanted section : game WIKI */ 
+#pagesection_howtoplay li { margin-left: 2em; } 
+#pagesection_howtoplay ol li { list-style: decimal; } /* BEFORE ul in case there are ul under ol */ 
+#pagesection_howtoplay ul li { list-style: disc; }
