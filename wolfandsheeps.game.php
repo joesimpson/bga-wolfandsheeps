@@ -520,6 +520,8 @@ class WolfAndSheeps extends Table
         // Active next player
         $player_id = self::activeNextPlayer();
 
+        self::incStat(1,'turns_number');
+        
         $sheepToken = $this->dbGetToken("t_".SHEEP_COLOR."_1");
         //CHECK IF SHEEP IS ON the opposite line (row == MAX row) => Sheep wins
         if($sheepToken["coord_row"] == self::get_LINE_MAX()){
@@ -576,8 +578,6 @@ class WolfAndSheeps extends Table
             $this->gamestate->nextState( 'endGame' );
             return;
         }
-        
-        self::incStat(1,'turns_number');
         
         // This player can play. Give them some extra time
         self::giveExtraTime( $player_id );
