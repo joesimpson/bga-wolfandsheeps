@@ -31,6 +31,9 @@ const TOKEN_STATE_MOVED = 1;
 
 const WINNER_SCORE = 1;
 
+const VICTORY_TYPE_SHEEP_REACH = 1;
+const VICTORY_TYPE_PLAYER_BLOCKED = 2;
+
 class WolfAndSheeps extends Table
 {
 	function __construct( )
@@ -45,6 +48,7 @@ class WolfAndSheeps extends Table
         
         self::initGameStateLabels( array( 
             "wsh_line_max" => 10,
+            "wsh_victory_type" => 11,
             
             "variant_BoardSize" => 100,
         ) );        
@@ -111,6 +115,7 @@ class WolfAndSheeps extends Table
         }
         
         self::setGameStateInitialValue( 'wsh_line_max', $boardsize );
+        self::setGameStateInitialValue( 'wsh_victory_type', 0 );
                 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -535,6 +540,8 @@ class WolfAndSheeps extends Table
                 'winner_score' => WINNER_SCORE,
             ) );
             
+            self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_SHEEP_REACH );
+            
             // Go to end of the game
             $this->gamestate->nextState( 'endGame' );
             return;
@@ -562,6 +569,8 @@ class WolfAndSheeps extends Table
                 'player_name' => $winner_name,
                 'winner_score' => WINNER_SCORE,
             ) );
+            
+            self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_PLAYER_BLOCKED );
             
             // Go to end of the game
             $this->gamestate->nextState( 'endGame' );
