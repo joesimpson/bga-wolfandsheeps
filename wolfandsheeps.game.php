@@ -33,6 +33,7 @@ const WINNER_SCORE = 1;
 
 const VICTORY_TYPE_SHEEP_REACH = 1;
 const VICTORY_TYPE_PLAYER_BLOCKED = 2;
+const VICTORY_TYPE_SHEEP_FREE = 3;
 
 class WolfAndSheeps extends Table
 {
@@ -261,6 +262,7 @@ class WolfAndSheeps extends Table
     }
     /**
     Almost constant, but depends on game start variant 
+    Return the maximum row in the board (Sorry for the confusion between row and line in french...)
     */
     function get_LINE_MAX(){
         return self::getGameStateValue( 'wsh_line_max' );;
@@ -361,8 +363,7 @@ class WolfAndSheeps extends Table
         //$this->dump('getPossibleMovesForToken() :', $token); // NOI18N 
         
         if($token_color == SHEEP_COLOR){//Only the sheep can move from row N to N+1 (backward for wolves)
-            $this->addPossiblePositionInArray($result, $token_location, 1,1 );
-            $this->addPossiblePositionInArray($result, $token_location, 1,-1 );
+            $result = array_merge($result, $this->getPossibleForwardMovesForSheep($token_location) );
         }
         //all can move from row N to N-1 (forward for wolves) :
         $this->addPossiblePositionInArray($result, $token_location, -1,1 );
@@ -372,14 +373,25 @@ class WolfAndSheeps extends Table
         
         return $result;
     }
-    /**
-    Directly add the new position in the pArray corresponding to coordinates ORIGIN+[dRow,dCol]
-    */
-    function addPossiblePositionInArray( &$pArray, $origin_location, $dRow,$dCol )
+    
+    function getPossibleForwardMovesForSheep( $token_location )
     {
-        $row = substr($origin_location,1);
+        $this->trace("getPossibleForwardMovesForSheep($token_location)..."); // NOI18N 
+        $result = array();
+        
+        $this->addPossiblePositionInArray($result, $token_location, 1,1 );
+        $this->addPossiblePositionInArray($result, $token_location, 1,-1 );
+        
+        return $result;
+    }
+    /**
+    Return the next position corresponding to coordinates ORIGIN+[dRow,dCol]
+    */
+    function getNextPosition( $origin_location, $dRow,$dCol )
+    {
+        $row = $this->parseRowInLocationString($origin_location);
         $columnsLetters = self::get_COLUMNS_LETTERS();
-        $columnInt = strpos ($columnsLetters, substr($origin_location, 0, 1) );
+        $columnInt = $this->parseColInLocationString($origin_location);
         
         $nextRow = $row + $dRow;
         //dont add new position IF out of board limits
@@ -392,6 +404,17 @@ class WolfAndSheeps extends Table
         $nextCol = substr($columnsLetters, $nextColumnInt, 1);
         
         $nextPos = "$nextCol$nextRow";
+        
+        $this->trace("getNextPosition($origin_location, $dRow,$dCol) : $nextPos ");
+        return $nextPos;
+    }
+    /**
+    Directly add the new position in the pArray corresponding to coordinates ORIGIN+[dRow,dCol]
+    */
+    function addPossiblePositionInArray( &$pArray, $origin_location, $dRow,$dCol )
+    {
+        $nextPos = $this->getNextPosition($origin_location, $dRow,$dCol);
+        if(!isset($nextPos)) return;
         $existingToken = $this->dbGetTokenOnLocation($nextPos);
         //Check position is EMPTY !!!!!
         if($existingToken) return;
@@ -407,14 +430,129 @@ class WolfAndSheeps extends Table
     Return true if moving FROM $origin TO $destination BY this player represents a backward move
     */
     function isBackwardMove($origin, $destination, $player_color) {
-        $originRow = substr($origin, 1);
-        $destinationRow = substr($destination, 1);
+        $originRow = $this->parseRowInLocationString($origin);
+        $destinationRow = $this->parseRowInLocationString($destination);
         
         if($destinationRow > $originRow && $player_color == WOLF_COLOR) return true;
         if($destinationRow < $originRow && $player_color == SHEEP_COLOR) return true;
         
         return false;
     }
+    
+    /**
+    return true if there is no more way for wolves to block the sheep (not exclusive list of checks)
+        false otherwise
+    */
+    function isSheepImpossibleToBlock($sheepToken = null){
+        $this->trace("isSheepImpossibleToBlock()...");
+        
+        $isFree = false;
+        
+        $token = $sheepToken;
+        $tokenId = $token['key'];
+        $token_location = $token['location'];
+        
+        $sheepFrontLineFreeSpaces = $this->getPossibleForwardMovesForSheep($token_location);
+        $previousWolfId = array();
+        
+        foreach($sheepFrontLineFreeSpaces as $positionToBlock){
+            $wolfIds = $this->isPossibleToReachPositionByWolves($positionToBlock);
+            if(count($wolfIds) == 0){
+                $isFree = true;
+                break;
+            }
+            if(count($wolfIds) == 1){
+                $newWolfs = array_diff( $wolfIds,$previousWolfId);
+                $oldWolfs = array_diff( $previousWolfId,$wolfIds);
+                if(count( $newWolfs) == 0 && count( $oldWolfs) == 0){
+                    //IF the same wolf is needed for each space, the sheep can go through
+                    $isFree = true;
+                    break;
+                }
+            }
+            //Else : there is more than 1 wolf to go there, so check next pos
+            
+            $previousWolfId = $wolfIds;
+        }
+        
+        $this->trace("isSheepImpossibleToBlock() => return ".($isFree ? 'true' : 'false'));
+        return $isFree;
+    }
+    
+    /**
+    return 
+        array of wolfs' ids who can reach the target,
+        empty array if none can
+    */
+    function isPossibleToReachPositionByWolves($targetLocationString){
+        $isPossible = array();
+        
+        $wolves = $this->dbGetPlayerTokens(WOLF_COLOR );
+        foreach($wolves as $wolf){
+            if($this->isPossibleToReachPositionByWolf($targetLocationString,$wolf)){
+                $isPossible[] = $wolf['key'];
+            }
+        }
+        
+        //$this->dump("isPossibleToReachPositionByWolves($targetLocationString)...=> return ",$isPossible);
+        return $isPossible;
+    }
+    
+    /**
+    return 
+        false if wolf token cannot reach the target during game
+        true otherwise
+    */
+    function isPossibleToReachPositionByWolf($targetLocationString,$wolf){
+        $isPossible = true;
+        
+        //$this->dump("isPossibleToReachPositionByWolf($targetLocationString) ...  ", $wolf);
+        
+        $wolf_id = $wolf["key"];
+        $coord_row = intval($wolf["coord_row"]);
+        $coord_col = 1 + $this->parseColInLocationString($wolf["location"]);
+        $targetRow = $this->parseRowInLocationString($targetLocationString);
+        $targetCol = 1 + $this->parseColInLocationString($targetLocationString);
+        
+        if($coord_row <=$targetRow ){
+            //IF row is behind wolf (row included), target cannot be reached
+            $isPossible = false;
+        }
+        else {
+            //Analysis: if target is not in angle between left diagonal and right diagonal from wolf position, wolf cannot reach it. (Compare this angle with the vehicle blind spot angle VS forward visibility angle).
+            //Example : for wolf in B8, left diag is B8-A7 (math defined as row = col +6) And right diag is B8-H2 (math defined as row = 8 - col +1 ) 
+            //Watch image "/misc/AnalyzeBoardDiagonals.PNG" for examples
+            //If {ROW,COL} under left diag [row = col + ($coord_row - $coord_col) ]
+            if($targetCol <= $coord_col && ( $targetRow >  ($targetCol + ($coord_row - $coord_col)) )){
+                $isPossible = false;
+                $this->trace("isPossibleToReachPositionByWolf($targetLocationString, $wolf_id) => KO because [$targetRow,$targetCol] under left diagonal [row = col + ($coord_row - $coord_col) ]");
+            }
+            //IF {ROW,COL} under right diag [row = (coord_row + coord_col) - col  ]
+            else if($targetCol >= $coord_col && ( $targetRow > ( $coord_row + $coord_col - $targetCol)) ){
+                $isPossible = false;
+                $this->trace("isPossibleToReachPositionByWolf($targetLocationString, $wolf_id) => KO because [$targetRow,$targetCol] under right diagonal [row = ($coord_row + $coord_col) - $targetCol ]");
+            }
+        }
+        
+        $this->trace("isPossibleToReachPositionByWolf($targetLocationString,$wolf_id) => return ".($isPossible ? 'true' : 'false'));
+        return $isPossible;
+    }
+    
+    /*
+    return column between 0 and max
+    */
+    function parseColInLocationString ($location) {
+        $columnsLetters = self::get_COLUMNS_LETTERS();
+        $columnInt = strpos ($columnsLetters, substr($location, 0, 1) );
+        return $columnInt;
+    }
+     /*
+    return row between 1 and max
+    */
+    function parseRowInLocationString ($location) {
+        return substr($location,1);
+    }
+    
     
     /**
     Return true if current player is the "Sheep" (== the white player)
@@ -549,8 +687,7 @@ class WolfAndSheeps extends Table
             return;
         }
 
-        // TODO JSA check if we can check it 1 turn before to avoid a useless turn waiting ?
-        //TODO JSA Check if only sheep's 0 movements get LOOSING
+        // TODO ? check if we can check it 1 turn before to avoid a useless turn waiting ? Be careful with this idea because computing future possible moves now doesn't consider the next player turn action !
         // Can this player play?
         $possibleMoves = self::getPossibleMoves( $player_id );
         if( count( $possibleMoves ) == 0 )
@@ -573,6 +710,31 @@ class WolfAndSheeps extends Table
             ) );
             
             self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_PLAYER_BLOCKED );
+            
+            // Go to end of the game
+            $this->gamestate->nextState( 'endGame' );
+            return;
+        }
+        
+        if( $this->isSheepImpossibleToBlock($sheepToken)){
+            $winner_color = SHEEP_COLOR;
+            
+            $players = $this->loadPlayersBasicInfos();
+            foreach ($players as $player) {
+                if($player['player_color'] == $winner_color ) { 
+                    $winner_id = $player['player_id'];
+                    $winner_name = $player['player_name'];
+                }
+            }
+            $this->dbSetScore($winner_id, WINNER_SCORE);
+            
+            self::notifyAllPlayers( "sheepWinsUnstoppable", clienttranslate( '${player_name} wins because the other player cannot block him anymore' ), array(
+                'player_id' => $winner_id,
+                'player_name' => $winner_name,
+                'winner_score' => WINNER_SCORE,
+            ) );
+            
+            self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_SHEEP_FREE );
             
             // Go to end of the game
             $this->gamestate->nextState( 'endGame' );
