@@ -399,6 +399,7 @@ function (dojo, declare) {
             
             dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
             dojo.subscribe( 'sheepWins', this, "notif_sheepWins" );
+            dojo.subscribe( 'sheepWinsUnstoppable', this, "notif_sheepWinsUnstoppable" );
             dojo.subscribe( 'winByBlocking', this, "notif_winByBlocking" );
         },  
         
@@ -434,6 +435,12 @@ function (dojo, declare) {
         notif_sheepWins: function( notif )
         {
             debug( "notif_sheepWins",notif );
+            //Update player panel score
+            this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
+        },
+        notif_sheepWinsUnstoppable: function( notif )
+        {
+            debug( "notif_sheepWinsUnstoppable",notif );
             //Update player panel score
             this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
         },
