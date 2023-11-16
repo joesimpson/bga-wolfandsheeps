@@ -34,6 +34,15 @@ $game_options = array(
                         ),
                 'default' => 1
             ),
+            
+    101 => array(
+                'name' => totranslate('Duration'),    
+                'values' => array(
+                            1 => array( 'name' => totranslate('1 round'), 'description' => totranslate('Classic play')),
+                            2 => array( 'name' => totranslate('2 rounds'), 'description' => totranslate('Round 1 is classic, then switch played sides for round 2')),
+                        ),
+                'default' => 1
+            ),
 );
 
 

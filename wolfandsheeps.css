@@ -89,6 +89,18 @@
     text-shadow: 1px 1px 5px black;
 }
 
+/* ------------------------------------------------------------------------------*/
+/** Override BGA style for log player_name (need some Javascript too, because player_color will change on round 2 */
+.wsh_playername_wrapper_ffffff .playername{
+    color: white !important;
+    background-color: #bbbbbb !important;
+}
+.wsh_playername_wrapper_000000 .playername{
+    color: black !important;
+    background-color: white !important;
+}
+/* ------------------------------------------------------------------------------*/
+
 /* WHITE */
 .wsh_token_ffffff{
    background-position: 000% 000%;
@@ -126,6 +138,10 @@
     display: inline-block;
     margin: calc(0.5*var(--wsh_cell_size));
     position: relative
+}
+
+.wsh_rotation_done{
+    transform: rotate(180deg);
 }
  
 .wsh_board_size_8 {
@@ -238,6 +254,9 @@
     font-size: 13px;
     font-weight: 400;
     position: absolute
+}
+.wsh_rotation_done .wsh_coordinate{
+    transform: rotate(180deg);
 }
 
 .wsh_lastMove:not(.wsh_possibleMoveFrom){

@@ -52,12 +52,13 @@
 
 /*
  Simple States  DIAGRAM :
-             
-    SETUP --> playerTurn --> nextPlayer --> END 
-                ^             |
-                |             |
-                \-------------/
-             
+
+    SETUP --> newRound --> playerTurn  --> nextPlayer --> endRound --> END
+                ^           ^                  |           |
+                |           |                  |           |
+                |           \------------------/           |
+                |                                          |
+                \------------------------------------------/ 
 */
  
 $machinestates = array(
@@ -68,7 +69,16 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => array( "" => 10 )
+        "transitions" => array( "" => 5 )
+    ),
+    
+    5 => array(
+        "name" => "newRound",
+        "description" => clienttranslate('New round'),
+        "type" => "game",
+        "action" => "stNewRound",
+        "updateGameProgression" => true,
+        "transitions" => array( "next" => 10  )
     ),
     
     10 => array(
@@ -87,7 +97,15 @@ $machinestates = array(
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,        
-        "transitions" => array( "nextTurn" => 10, "endGame" => 99 )
+        "transitions" => array( "nextTurn" => 10, "endRound" => 80 )
+    ),
+    
+    80 => array(
+        "name" => "endRound",
+        "description" => clienttranslate('End round'),
+        "type" => "game",
+        "action" => "stEndRound",
+        "transitions" => array( "endGame" => 99, "newRound" => 5 )
     ),
    
     // Final state.

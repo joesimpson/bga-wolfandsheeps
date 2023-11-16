@@ -27,6 +27,10 @@ define([
     "ebg/counter"
 ],
 function (dojo, declare) {
+    //BGA background for white player name
+    const SHEEP_COLOR_BACK ="bbbbbb";
+    const WOLF_COLOR_BACK = null;
+    
     return declare("bgagame.wolfandsheeps", ebg.core.gamegui, {
         constructor: function(){
             debug('wolfandsheeps constructor');
@@ -64,15 +68,7 @@ function (dojo, declare) {
             }
             
             // Set up your game interface here, according to "gamedatas"
-            
-            for( let i in gamedatas.board ){
-                let token = gamedatas.board[i];
-                this.addTokenOnBoard(token.key, token.color,token.location);
-                if(token.state == gamedatas.constants.TOKEN_STATE_MOVED){
-                    this.updateLastMove(token.key);
-                }
-            }
-            dojo.query( '.wsh_token' ).connect( 'onclick', this, 'onSelectMoveOrigin' );
+            this.updateBoard( gamedatas.board,false);
             dojo.query( '.wsh_cell' ).connect( 'onclick', this, 'onPlayToken' );
             
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -90,7 +86,7 @@ function (dojo, declare) {
         //
         onEnteringState: function( stateName, args )
         {
-            debug( 'Entering state: '+stateName );
+            debug( 'Entering state: '+stateName ,args);
             
             switch( stateName )
             {
@@ -159,6 +155,7 @@ function (dojo, declare) {
          * all its connectors (onClick, etc)
          */
         attachToNewParentNoDestroy: function (mobile_in, new_parent_in, relation, place_position) {
+            debug( 'attachToNewParentNoDestroy', mobile_in, new_parent_in, relation, place_position );
 
             const mobile = $(mobile_in);
             const new_parent = $(new_parent_in);
@@ -194,7 +191,63 @@ function (dojo, declare) {
             }
         },
         
-        //// Other Utility methods ------------------------
+        /** Override this function to inject html into log items. This is a built-in BGA method.  */
+        /* @Override */
+        format_string_recursive : function format_string_recursive(log, args) {
+            try {
+                debug("format_string_recursive()",log, args);
+                if (log && args && !args.processed) {
+                    args.processed = true;
+
+                    let player_name = 'player_name';
+                    let color = 'color';
+                    if(player_name in args && color in args) {
+                        let player_color = args[color];
+                        args[player_name] = '<span class="wsh_playername_wrapper_'+player_color+'">'+args[player_name]+'</span>';
+                    }
+                }
+            } catch (e) {
+                console.error(log,args,"Exception thrown", e.stack);
+            }
+            return this.inherited({callee: format_string_recursive}, arguments);
+        },
+        
+        //------------------------------------------------------------------------
+        //   ----------------------- Other Utility methods -----------------------
+        //------------------------------------------------------------------------
+        animationBlink2Times: function(divId){
+            // Make the token blink 2 times
+            let anim = dojo.fx.chain( [
+                dojo.fadeOut( { node: divId } ),
+                dojo.fadeIn( { node: divId } ),
+                dojo.fadeOut( { node: divId } ),
+                dojo.fadeIn( { node: divId  } )
+            ] );
+            anim.play();
+        },
+        animationRotate: function(divId,angle){
+            debug( "animationRotate" );
+            /*
+            //Rotate during 1s by JumpMaybe
+            animation = dojo.animateProperty({
+                node: divId,
+                duration: 1000,
+                properties: {
+                    propertyTransform: {start: 0, end: angle}
+                },
+                onAnimate: function (values) {
+                    dojo.style(this.node, 'transform', 'rotate(' + parseFloat(values.propertyTransform.replace("px", "")) + 'deg)');
+                },
+                onEnd: (node) => {
+                    dojo.toggleClass(node, "wsh_rotation_done");
+                }
+            });
+            animation.play();
+            */
+            //BGA rotation
+            this.rotateTo(divId,angle);
+        },
+        
         toggleCellLight: function( )
         {
             debug("toggleCellLight()");
@@ -236,9 +289,26 @@ function (dojo, declare) {
             //this.addTooltipToClass( 'wsh_possibleMoveFrom', '', _('You can move from this place') );
             
         },
+        updateBoard: function( board, animate ) {
+            debug( "updateBoard",board, animate );
+            
+            dojo.query( '.wsh_token' ).forEach( t => { dojo.destroy(t);  });
+            
+            this.gamedatas.board = board;
+            
+            for( let i in board ){
+                let token = board[i];
+                this.addTokenOnBoard(token.key, token.color,token.location, animate);
+                if(token.state == this.gamedatas.constants.TOKEN_STATE_MOVED){
+                    this.updateLastMove(token.key);
+                }
+            }
+            dojo.query( '.wsh_token' ).connect( 'onclick', this, 'onSelectMoveOrigin' );
+            
+        },
         
-        addTokenOnBoard: function( id, color,coord ) {
-            debug( "addTokenOnBoard",id, color,coord );
+        addTokenOnBoard: function( id, color,coord, animate ) {
+            debug( "addTokenOnBoard",id, color,coord, animate );
             let divPlace = "wsh_cell_"+coord;
             if($(divPlace) == null){
                 debug( "Cannot place token on not found cell ",divPlace, coord );
@@ -256,6 +326,13 @@ function (dojo, declare) {
                 ),
                 divPlace
             ); 
+            if(animate) this.animationBlink2Times(divPlace);
+        },
+        rotateBoardPointOfView: function(){
+            debug( "rotateBoardPointOfView" );
+            
+            this.animationRotate("wsh_board",180);
+            dojo.toggleClass($("wsh_board"), "wsh_rotation_done");
         },
         
         cleanChosenMoveToConfirm: function(){
@@ -397,6 +474,8 @@ function (dojo, declare) {
             debug( 'notifications subscriptions setup' );
             // here, associate your game notifications with local methods
             
+            dojo.subscribe( 'newRound', this, "notif_newRound" );
+            dojo.subscribe( 'newBoard', this, "notif_newBoard" );
             dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
             dojo.subscribe( 'sheepWins', this, "notif_sheepWins" );
             dojo.subscribe( 'sheepWinsUnstoppable', this, "notif_sheepWinsUnstoppable" );
@@ -404,7 +483,37 @@ function (dojo, declare) {
         },  
         
         // from this point and below, you can write your game notifications handling methods
+        notif_newRound: function( notif )
+        {
+            debug( "notif_newRound",notif );
+            
+            this.gamedatas.players[notif.args.sheep_player_id].color = this.gamedatas.constants.SHEEP_COLOR;
+            this.gamedatas.players[notif.args.sheep_player_id].color_back = SHEEP_COLOR_BACK;
+            this.gamedatas.players[notif.args.wolf_player_id].color = this.gamedatas.constants.WOLF_COLOR;
+            this.gamedatas.players[notif.args.wolf_player_id].color_back = WOLF_COLOR_BACK;
         
+            dojo.query ("#overall_player_board_"+notif.args.sheep_player_id+" #player_name_"+notif.args.sheep_player_id+" a:first-child" ).forEach( a => {
+                debug("update player panel color :",notif.args.sheep_player_id);
+                a.style.color = "#"+this.gamedatas.constants.SHEEP_COLOR;
+            });
+            dojo.query( "#overall_player_board_"+notif.args.wolf_player_id+" #player_name_"+notif.args.wolf_player_id+" a:first-child" ).forEach( a => {
+                debug("update player panel color :",notif.args.wolf_player_id);
+                a.style.color = "#"+this.gamedatas.constants.WOLF_COLOR;
+            });
+            
+            if(notif.args.nb % 2 ==0){
+                //reverse Point of view on board on even rounds (only round 2 for now) 
+                this.rotateBoardPointOfView();
+            }
+        },
+        
+        notif_newBoard: function( notif )
+        {
+            debug( "notif_newBoard",notif );
+            // reset board
+            this.updateBoard(notif.args.board,true);
+            this.updatePossibleMoves(this.allPossibleMoves);
+        },
         notif_tokenPlayed: function( notif )
         {
             debug( 'notif_tokenPlayed', notif );
@@ -417,6 +526,11 @@ function (dojo, declare) {
             let tokenDivId = tokenId;
             let destinationDivId ="wsh_cell_"+destination;
             this.attachToNewParentNoDestroy(tokenDivId, destinationDivId);
+            if( $("wsh_board").classList.contains( "wsh_rotation_done") ){
+                //To avoid strange slides starting position after computation
+                $(tokenDivId).style.left = (0 - $(tokenDivId).style.left.replace("px", "") ) +"px";
+                $(tokenDivId).style.top = (0 - $(tokenDivId).style.top.replace("px", "") ) +"px";
+            }
             dojo.attr(tokenDivId, "data_location", destination);
             let anim = this.slideToObject(tokenDivId,destinationDivId,1000);
             dojo.connect(anim, 'onEnd', function(node){
@@ -436,19 +550,19 @@ function (dojo, declare) {
         {
             debug( "notif_sheepWins",notif );
             //Update player panel score
-            this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
+            this.scoreCtrl[notif.args.player_id].incValue( notif.args.winner_score);
         },
         notif_sheepWinsUnstoppable: function( notif )
         {
             debug( "notif_sheepWinsUnstoppable",notif );
             //Update player panel score
-            this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
+            this.scoreCtrl[notif.args.player_id].incValue( notif.args.winner_score);
         },
         notif_winByBlocking: function( notif )
         {
             debug( "notif_winByBlocking",notif );
             //Update player panel score
-            this.scoreCtrl[notif.args.player_id].toValue( notif.args.winner_score);
+            this.scoreCtrl[notif.args.player_id].incValue( notif.args.winner_score);
         },
         
    });             

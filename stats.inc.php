@@ -62,21 +62,36 @@ $stats_type = array(
     "player" => array(
 
         "player_side" => array("id"=> 10,
-                    "name" => totranslate("Played side"),
+                    "name" => totranslate("Round 1 : Played side"),
                     "type" => "int" ),
                     
         "moves_forward" => array("id"=> 20,
-                    "name" => totranslate("Number of moves forward"),
+                    "name" => totranslate("Round 1 : Moves forward"),
                     "type" => "int" ),
     
         "moves_backward" => array("id"=> 21,
-                    "name" => totranslate("Number of moves backward"),
+                    "name" => totranslate("Round 1 : Moves backward"),
                     "type" => "int" ),
 
+        "player_side_round2" => array("id"=> 50,
+                    "name" => totranslate("Round 2 : Played side"),
+                    "type" => "int" ),
+                    
+        "moves_forward_round2" => array("id"=> 60,
+                    "name" => totranslate("Round 2 : Moves forward"),
+                    "type" => "int" ),
+    
+        "moves_backward_round2" => array("id"=> 61,
+                    "name" => totranslate("Round 2 : Moves backward"),
+                    "type" => "int" ),
     ),
     
     "value_labels" => array(
 		10 => array( 
+			0 => totranslate("White"),
+			1 => totranslate("Black"), 
+		),
+        50 => array( 
 			0 => totranslate("White"),
 			1 => totranslate("Black"), 
 		),

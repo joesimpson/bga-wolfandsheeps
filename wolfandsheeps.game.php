@@ -50,8 +50,11 @@ class WolfAndSheeps extends Table
         self::initGameStateLabels( array( 
             "wsh_line_max" => 10,
             "wsh_victory_type" => 11,
+            "wsh_round_max" => 20,
+            "wsh_round_number" => 21,
             
             "variant_BoardSize" => 100,
+            "variant_RoundNumber" => 101,
         ) );        
 	}
 	
@@ -114,8 +117,20 @@ class WolfAndSheeps extends Table
                 $boardsize = 8;
                 break;
         }
+        $variant_RoundNumber = self::getGameStateValue( 'variant_RoundNumber' );
+        switch ($variant_RoundNumber){
+            case 2:
+                $roundMax = 2;
+                break;
+            case 1:
+            default:
+                $roundMax = 1;
+                break;
+        }
         
         self::setGameStateInitialValue( 'wsh_line_max', $boardsize );
+        self::setGameStateInitialValue( 'wsh_round_max', $roundMax );
+        self::setGameStateInitialValue( 'wsh_round_number', 0 );
         self::setGameStateInitialValue( 'wsh_victory_type', 0 );
                 
         // Init game statistics
@@ -127,9 +142,17 @@ class WolfAndSheeps extends Table
 
         self::setStat(0,'player_side',$whiteplayer_id);
         self::setStat(1,'player_side',$blackplayer_id);
+        
+        if($roundMax >1){
+            //Prepare round 2 with reversed roles
+            self::initStat( 'player', 'player_side_round2', 0 );
+            self::initStat( 'player', 'moves_forward_round2', 0 ); 
+            self::initStat( 'player', 'moves_backward_round2', 0 ,$blackplayer_id); 
+            self::setStat(0,'player_side_round2',$blackplayer_id);
+            self::setStat(1,'player_side_round2',$whiteplayer_id);
+        }
 
         // setup the initial game situation here
-        $this->initTables($boardsize);
 
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -154,16 +177,20 @@ class WolfAndSheeps extends Table
     
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score FROM player ";
+        $sql = "SELECT player_id id, player_score score, player_color color FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
   
         // Gather all information about current game situation (visible by player $current_player_id).
         
+        //May be empty in first few seconds => added in argPlayerTurn because board is not init before new round
         $result['board'] = self::getObjectListFromDB(   self::getSQLSelectTOKEN() );
   
         $result['constants'] = array( 
             "TOKEN_STATE_MOVED" => TOKEN_STATE_MOVED,
+            "SHEEP_COLOR" => SHEEP_COLOR,
+            "WOLF_COLOR" => WOLF_COLOR,
         );
+        
         return $result;
     }
 
@@ -179,6 +206,12 @@ class WolfAndSheeps extends Table
     */
     function getGameProgression()
     {
+        $round = $this->getCurrentRound();
+        $maxRound = $this->getMaxRound();
+        
+        //Previous round progress : 0 on round 1/1, 0 on round 1/2,  1/2 on round 2
+        $previousRoundProgress = ($round -1) / $maxRound *100; 
+        
         //Each turn Black player MUST advance a pawn on a line : it means each of its 4 pawns can move a maximum of 7 times (LINE_MAX-1).
         $LINE_MAX = self::get_LINE_MAX();
         $nb_wolves = $LINE_MAX/2;
@@ -188,20 +221,23 @@ class WolfAndSheeps extends Table
         //So the (theoritical) maximum number of moves is 2 times this (Black + White): a game can always finish before...
         $nbMaxMoves = 2* $nbMaxBlackMoves;
 
-        //predefined  Global value "6"	"playerturn_nbr" :	Player turn number
-        $currentMoves = 0;
-        try{
-            $currentMoves = $this->getGameStateValue('playerturn_nbr');
-        } catch ( Exception $e ) {
-            $this->error("Fatal error while calling BGA predefined global 'playerturn_nbr'");
-            //$this->dump('err', $e);
-        }
+        $currentMoves = 0;    
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player) {
+            $currentMoves += $this->getCurrentRoundMoves($player['player_id']);
+        }        
         
-        $progress = $currentMoves / $nbMaxMoves *100;
+        $progressRound = $currentMoves / $nbMaxMoves *100;
+        if($previousRoundProgress >0 ){
+            $progress = $previousRoundProgress + $progressRound / (100 / (100 - $previousRoundProgress));
+        }
+        else {
+            $progress = $progressRound;
+        }
         
         //If we want players to be able to concede at any time (like Chess, xiangqi and some others ), it must be >=50
         $minProgress = 50;
-        $progress = $minProgress + $progress / (100 / $minProgress);
+        $progress = $minProgress + $progress / (100 / (100 - $minProgress) );
         
         return $progress;
     }
@@ -218,9 +254,9 @@ class WolfAndSheeps extends Table
     /**
     Init DataBase
     */
-    function initTables($boardsize){
+    function initBoard($boardsize){
         try {
-            $players = $this->loadPlayersBasicInfos();
+            self::DbQuery("DELETE FROM token" );
             
             // INIT Board with tokens starting positions : no other tokens will be used in the game
             $sql = "INSERT INTO token (token_key,token_location,token_state) VALUES ";
@@ -243,14 +279,41 @@ class WolfAndSheeps extends Table
             self::DbQuery( $sql );
         
         } catch ( Exception $e ) {
-            // logging does not actually work in game init :(
-            // but if you calling from php chat it will work
-            $this->error("Fatal error while creating game");
+            $this->error("Fatal error while initializing board tables");
             $this->dump('err', $e);
         }
         
     }
+    function getCurrentRound(){
+        try{
+            $currentRound = $this->getGameStateValue('wsh_round_number');
+        } catch ( Exception $e ) {
+            $this->trace("Error while reading new global 'wsh_round_number'");
+            $currentRound = 1;
+        }
+        return $currentRound;
+    }
+    function getMaxRound(){
+        try{
+            $max = $this->getGameStateValue('wsh_round_max');
+        } catch ( Exception $e ) {
+            $this->trace("Error while reading new global 'wsh_round_max'");
+            $max = 1;
+        }
+        return $max;
+    }
     
+    function getCurrentRoundMoves($player_id){
+        try{
+            $round = $this->getCurrentRound();
+            $statMoveBack = ($round == 2) ? 'moves_backward_round2':'moves_backward';
+            $statMoveForward = ($round == 2) ? 'moves_forward_round2':'moves_forward';
+            $nbMoves = self::getStat($statMoveForward,$player_id) + self::getStat($statMoveBack,$player_id);
+        } catch ( Exception $e ) {
+            $nbMoves = 0;
+        }
+        return $nbMoves;
+    }
     /**
     Almost constant, but depends on game start variant 
     */
@@ -313,6 +376,14 @@ class WolfAndSheeps extends Table
     // set player score
     function dbSetScore($player_id, $score) {
         self::DbQuery("UPDATE player SET player_score='$score' WHERE player_id='$player_id'");
+    }
+    // increase/decrease player score
+    function dbIncScore($player_id, $deltaScore) {
+        self::DbQuery("UPDATE player SET player_score= player_score + $deltaScore WHERE player_id='$player_id'");
+    }
+    // set player aux score
+    function dbIncreasePlayerScoreAux($player_id,$deltaScoreAux){
+        self::DbQuery( "UPDATE player SET player_score_aux= player_score_aux +$deltaScoreAux WHERE player_id='$player_id'" );
     }
     //////////// Database Utility functions - END -----------------------------------
 
@@ -603,15 +674,18 @@ class WolfAndSheeps extends Table
         $this->dbUpdateAllTokenState(TOKEN_STATE_RESET);
         $this->dbUpdateTokenLocation($tokenId,$dest);
         
+        $round = $this->getCurrentRound();
         if( $this->isBackwardMove($token_origin, $dest,$token_color)){
-            self::incStat(1,'moves_backward',$player_id);
+            $statMove = ($round == 2) ? 'moves_backward_round2':'moves_backward';
         }
         else {
-            self::incStat(1,'moves_forward',$player_id);
+            $statMove = ($round == 2) ? 'moves_forward_round2':'moves_forward';
         }
+        self::incStat(1,$statMove,$player_id);
         
         // Notify all players about the token played
         self::notifyAllPlayers( "tokenPlayed", clienttranslate( '${player_name} moves from ${origin} to ${dest}' ), array(
+            'preserve' => [ 'color' ],
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'color' =>  $token_color, 
@@ -641,6 +715,7 @@ class WolfAndSheeps extends Table
         $player_id = self::getActivePlayerId();
         self::trace("argPlayerTurn() : ".($player_id));        
         return array( 'possibleMoves' => self::getPossibleMoves($player_id),
+            'board' => self::getObjectListFromDB(   self::getSQLSelectTOKEN() ),
         );
     }
 
@@ -653,6 +728,59 @@ class WolfAndSheeps extends Table
         The action method of state X is called everytime the current game state is set to X.
     */
 
+    function stNewRound()
+    { 
+        self::trace("stNewRound()");
+        
+        $roundMax = $this->getMaxRound();
+        
+        //INCREASE ROund number
+        $round = $this->getCurrentRound();
+        $round++;
+        self::setGameStateValue( 'wsh_round_number', $round );
+        
+        if($roundMax > 1){ 
+            //IF several rounds
+            
+            if($round == 2){
+                //switch colors + notify new colors
+                $this->DbQuery("UPDATE player SET `player_color` = '".SHEEP_COLOR."' WHERE player_no = 2");
+                $this->DbQuery("UPDATE player SET `player_color` = '".WOLF_COLOR."' WHERE player_no = 1");
+                
+                $this->reloadPlayersBasicInfos();
+            }
+            
+            $players = $this->loadPlayersBasicInfos();
+            foreach ($players as $player) {
+                if($player['player_color'] == SHEEP_COLOR ) { 
+                    $sheep_player_id = $player['player_id'];
+                }
+                else if($player['player_color'] == WOLF_COLOR ) { 
+                    $wolf_player_id = $player['player_id'];
+                }
+            }
+            
+            $this->gamestate->changeActivePlayer( $sheep_player_id );
+            
+            //NOTIF ALL about new round
+            self::notifyAllPlayers( "newRound", clienttranslate( 'The game starts round number ${nb}' ), array( 
+                'nb' => $round,
+                'sheep_player_id' => $sheep_player_id,
+                'wolf_player_id' => $wolf_player_id,
+            ) );
+            
+        }
+        
+        $this->initBoard(self::get_LINE_MAX());
+        
+        self::notifyAllPlayers( "newBoard", '', array( 
+                'round' => $round,
+                'board' => self::getObjectListFromDB(   self::getSQLSelectTOKEN() ),
+            ) );
+        
+        $this->gamestate->nextState( 'next' );
+    }
+    
     function stNextPlayer()
     {
         // Active next player
@@ -660,7 +788,10 @@ class WolfAndSheeps extends Table
 
         self::incStat(1,'turns_number');
         
+        $round = $this->getCurrentRound();
+        
         $sheepToken = $this->dbGetToken("t_".SHEEP_COLOR."_1");
+            
         //CHECK IF SHEEP IS ON the opposite line (row == MAX row) => Sheep wins
         if($sheepToken["coord_row"] == self::get_LINE_MAX()){
             $winner_color = SHEEP_COLOR;
@@ -672,18 +803,26 @@ class WolfAndSheeps extends Table
                     $winner_name = $player['player_name'];
                 }
             }
-            $this->dbSetScore($winner_id, WINNER_SCORE);
+            //TODO JSA FACTORIZE
+            $this->dbIncScore($winner_id, WINNER_SCORE);
+            //Tie breaker score :
+            $nbMoves = $this->getCurrentRoundMoves($winner_id);
+            self::trace("stNextPlayer() nbMoves = $nbMoves");
+            //We will consider the lowest number of moves as tie, so count negative :
+            $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
             
             self::notifyAllPlayers( "sheepWins", clienttranslate( '${player_name} wins by reaching the other side of the board' ), array(
+                'preserve' => [ 'color' ],
                 'player_id' => $winner_id,
                 'player_name' => $winner_name,
                 'winner_score' => WINNER_SCORE,
+                'color' =>  $winner_color, 
             ) );
             
             self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_SHEEP_REACH );
             
             // Go to end of the game
-            $this->gamestate->nextState( 'endGame' );
+            $this->gamestate->nextState( 'endRound' );
             return;
         }
 
@@ -699,20 +838,27 @@ class WolfAndSheeps extends Table
                 if($player['player_id'] != $player_id ) { //ONLY 2 players here so let's find any other
                     $winner_id = $player['player_id'];
                     $winner_name = $player['player_name'];
+                    $winner_color = $player['player_color'];
                 }
             }
-            $this->dbSetScore($winner_id, WINNER_SCORE);
+            $this->dbIncScore($winner_id, WINNER_SCORE);
+            //Tie breaker score :
+            $nbMoves = $this->getCurrentRoundMoves($winner_id);
+            //We will consider the lowest number of moves as tie, so count negative :
+            $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
             
             self::notifyAllPlayers( "winByBlocking", clienttranslate( '${player_name} wins because the other player is blocked' ), array(
+                'preserve' => [ 'color' ],
                 'player_id' => $winner_id,
                 'player_name' => $winner_name,
                 'winner_score' => WINNER_SCORE,
+                'color' =>  $winner_color, 
             ) );
             
             self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_PLAYER_BLOCKED );
             
             // Go to end of the game
-            $this->gamestate->nextState( 'endGame' );
+            $this->gamestate->nextState( 'endRound' );
             return;
         }
         
@@ -726,18 +872,24 @@ class WolfAndSheeps extends Table
                     $winner_name = $player['player_name'];
                 }
             }
-            $this->dbSetScore($winner_id, WINNER_SCORE);
+            $this->dbIncScore($winner_id, WINNER_SCORE);
+            //Tie breaker score :
+            $nbMoves = $this->getCurrentRoundMoves($winner_id);
+            //We will consider the lowest number of moves as tie, so count negative :
+            $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
             
             self::notifyAllPlayers( "sheepWinsUnstoppable", clienttranslate( '${player_name} wins because the other player cannot block him anymore' ), array(
+                'preserve' => [ 'color' ],
                 'player_id' => $winner_id,
                 'player_name' => $winner_name,
                 'winner_score' => WINNER_SCORE,
+                'color' =>  $winner_color, 
             ) );
             
             self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_SHEEP_FREE );
             
             // Go to end of the game
-            $this->gamestate->nextState( 'endGame' );
+            $this->gamestate->nextState( 'endRound' );
             return;
         }
         
@@ -746,6 +898,22 @@ class WolfAndSheeps extends Table
         $this->gamestate->nextState( 'nextTurn' );
     }
 
+    function stEndRound()
+    {  
+        self::trace("stEndRound()");
+        
+        $roundMax = $this->getMaxRound();
+        $round = $this->getCurrentRound();
+        
+        //CHECK round_number and end if >=MAX
+        if($round >= $roundMax ){
+            $this->gamestate->nextState( 'endGame' );
+            return;
+        }
+        
+        $this->gamestate->nextState( 'newRound' );
+    }
+    
 //////////////////////////////////////////////////////////////////////////////
 //////////// Zombie
 ////////////
