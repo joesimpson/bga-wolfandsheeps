@@ -474,6 +474,8 @@ function (dojo, declare) {
             debug( 'notifications subscriptions setup' );
             // here, associate your game notifications with local methods
             
+            dojo.subscribe( 'endRound', this, "notif_endRound" );
+            this.notifqueue.setSynchronous( 'endRound',5000 );
             dojo.subscribe( 'newRound', this, "notif_newRound" );
             dojo.subscribe( 'newBoard', this, "notif_newBoard" );
             dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
@@ -500,19 +502,26 @@ function (dojo, declare) {
                 debug("update player panel color :",notif.args.wolf_player_id);
                 a.style.color = "#"+this.gamedatas.constants.WOLF_COLOR;
             });
-            
-            if(notif.args.nb % 2 ==0){
-                //reverse Point of view on board on even rounds (only round 2 for now) 
-                this.rotateBoardPointOfView();
-            }
         },
         
         notif_newBoard: function( notif )
         {
             debug( "notif_newBoard",notif );
+            
+            if(notif.args.round % 2 ==0){
+                //reverse Point of view on board on even rounds (only round 2 for now) 
+                this.rotateBoardPointOfView();
+            }
+            
             // reset board
             this.updateBoard(notif.args.board,true);
             this.updatePossibleMoves(this.allPossibleMoves);
+        },
+        
+        notif_endRound: function( notif )
+        {
+            debug( "notif_endRound",notif );
+            
         },
         notif_tokenPlayed: function( notif )
         {

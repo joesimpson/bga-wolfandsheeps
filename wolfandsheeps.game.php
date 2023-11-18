@@ -905,6 +905,10 @@ class WolfAndSheeps extends Table
         $roundMax = $this->getMaxRound();
         $round = $this->getCurrentRound();
         
+        self::notifyAllPlayers( "endRound", '', array( 
+                'round' => $round,
+            ) );
+            
         //CHECK round_number and end if >=MAX
         if($round >= $roundMax ){
             $this->gamestate->nextState( 'endGame' );
