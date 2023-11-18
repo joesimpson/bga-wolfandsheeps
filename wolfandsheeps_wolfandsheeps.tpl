@@ -12,8 +12,13 @@
 <div id="wsh_game_zone">
 
     <!-- Inspired by BGA Chess Board implementation by ecolin -->
-    
-    <div id="wsh_board" class="wsh_board_size_{BOARD_SIZE}">
+    <div id="wsh_button_display_round_1" class="bgabutton bgabutton_blue wsh_no_display ">{DISPLAY_BOARD_1}</div>
+    <br/>
+    <!-- BEGIN wsh_board_round -->
+    <div id="wsh_board_wrapper_{ROUND}" class ="wsh_board_wrapper">
+    <hr/>
+    <div id="wsh_label_round_{ROUND}" class="">{LABEL_BOARD_ROUND}</div>
+    <div id="wsh_board_round_{ROUND}" class="wsh_board wsh_board_size_{BOARD_SIZE}">
         <!-- BEGIN wsh_board_column -->
     
             <!-- BEGIN wsh_col_number -->
@@ -34,13 +39,15 @@
                 
             <!-- BEGIN wsh_board_cell -->
             <div class="wsh_cell_holder wsh_cell_{LIGHT_OR_DARK}" style="top: calc(({ROW_OFFSET} - 1)*var(--wsh_cell_size)); left: calc({COLUMN_INT}*var(--wsh_cell_size));">
-                <div id="wsh_cell_{COLUMN}{ROW}" class="wsh_cell"></div>
+                <div id="wsh_cell_{COLUMN}{ROW}{ROUND_SUFFIX}" class="wsh_cell"></div>
             </div>
             <!-- END wsh_board_cell -->
         
             
         <!-- END wsh_board_column -->
     </div>
+    </div>
+    <!-- END wsh_board_round -->
     
 
 </div>

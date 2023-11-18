@@ -34,24 +34,18 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
         return "wolfandsheeps";
     }
     
-  	function build_page( $viewArgs )
+  	function build_board( $round )
   	{		
-  	    // Get players & players number
-        $players = $this->game->loadPlayersBasicInfos();
-        $players_nbr = count( $players );
-
-        /*********** Place your code below:  ************/
+        $tplSuffixRound = "_round_$round" ;
+        
+        $this->page->reset_subblocks( 'wsh_row_number_left'); 
+        $this->page->reset_subblocks( 'wsh_row_number_right'); 
+        $this->page->reset_subblocks( 'wsh_col_number'); 
+        $this->page->reset_subblocks( 'wsh_col_number_bottom'); 
+        $this->page->reset_subblocks( 'wsh_board_cell'); 
+        $this->page->reset_subblocks( 'wsh_board_column'); 
         
         $COLUMNS_LETTERS = $this->game->get_COLUMNS_LETTERS();
-        $this->tpl['BOARD_SIZE'] = strlen($COLUMNS_LETTERS);
-        
-        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_row_number_left" );
-        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_row_number_right" );
-        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_col_number" );
-        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_col_number_bottom" );
-        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_cell" );
-        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_column" );
-        
         $columns = $COLUMNS_LETTERS;//"ABCDEFGH";
         //$lines = "12345678";
         $lines = "";
@@ -75,6 +69,8 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
             $lines = strrev($lines); // 87654321
             $columns = strrev($columns);
             $activateRowOffset = true;
+            
+            //TODO JSA REVERSE for round 2 
         }
         
         foreach (str_split($columns) as $column) {
@@ -126,6 +122,7 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
                                                     "COLUMN" => $column,
                                                     "COLUMN_INT" => $columnInt,
                                                     "LIGHT_OR_DARK" => $color,
+                                                    "ROUND_SUFFIX" => $tplSuffixRound,
                                                      ) );
                         
                                          
@@ -135,11 +132,40 @@ class view_wolfandsheeps_wolfandsheeps extends game_view
             $this->page->insert_block( "wsh_board_column", array( 
                                                     "COLUMN" => $column,
                                                      ) );
+                                                     
             $counter++;
          
         }
+        
+        $this->page->insert_block( "wsh_board_round", array( 
+                                                "ROUND" => $round,
+                                                "LABEL_BOARD_ROUND" => self::raw(gameview_str_replace('${n}', $round, self::_('Round ${n}'))),
+                                                 ) );
+    }
+    
+  	function build_page( $viewArgs )
+  	{		
+  	    // Get players & players number
+        $players = $this->game->loadPlayersBasicInfos();
+        $players_nbr = count( $players );
 
-
+        /*********** Place your code below:  ************/
+        
+        $COLUMNS_LETTERS = $this->game->get_COLUMNS_LETTERS();
+        $this->tpl['BOARD_SIZE'] = strlen($COLUMNS_LETTERS); 
+        
+        $this->tpl['DISPLAY_BOARD_1'] = self::_("Show/Hide round 1 result");
+        
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_row_number_left");
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_row_number_right");
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_col_number");
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_col_number_bottom" );
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_cell");
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_column");
+        $this->page->begin_block( "wolfandsheeps_wolfandsheeps", "wsh_board_round" );
+        
+        $this->build_board(1);
+        $this->build_board(2);
 
         /*********** Do not change anything below this line  ************/
   	}

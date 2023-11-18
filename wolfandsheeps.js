@@ -68,8 +68,11 @@ function (dojo, declare) {
             }
             
             // Set up your game interface here, according to "gamedatas"
+            this.round = gamedatas.round;
             this.updateBoard( gamedatas.board,false);
             dojo.query( '.wsh_cell' ).connect( 'onclick', this, 'onPlayToken' );
+            
+            dojo.query( '#wsh_button_display_round_1' ).connect( 'onclick', this, 'onButtonBoard1' );
             
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -91,6 +94,8 @@ function (dojo, declare) {
             switch( stateName )
             {
             case 'playerTurn':
+                this.round = args.args.round;
+                this.displayBoard(this.round);
                 debug( 'possibleMoves: ',args.args.possibleMoves );
                 if(args.active_player == this.player_id){
                     this.updatePossibleMoves( args.args.possibleMoves );
@@ -216,6 +221,7 @@ function (dojo, declare) {
         //   ----------------------- Other Utility methods -----------------------
         //------------------------------------------------------------------------
         animationBlink2Times: function(divId){
+            debug( "animationBlink2Times",divId );
             // Make the token blink 2 times
             let anim = dojo.fx.chain( [
                 dojo.fadeOut( { node: divId } ),
@@ -226,7 +232,7 @@ function (dojo, declare) {
             anim.play();
         },
         animationRotate: function(divId,angle){
-            debug( "animationRotate" );
+            debug( "animationRotate",divId,angle );
             /*
             //Rotate during 1s by JumpMaybe
             animation = dojo.animateProperty({
@@ -260,6 +266,7 @@ function (dojo, declare) {
         updateLastMove: function( tokenId )
         {
             debug("updateLastMove()",tokenId);
+            // let currentBoard = "#wsh_board_round_"+this.round;
             dojo.query( '.wsh_token' ).removeClass( 'wsh_lastMove' );
             dojo.addClass( tokenId,'wsh_lastMove' ); 
         },
@@ -267,10 +274,12 @@ function (dojo, declare) {
         updatePossibleMoves: function( possibleMoves )
         {
             debug("updatePossibleMoves()",possibleMoves);
+            
+            let currentBoard = "#wsh_board_round_"+this.round;
             // Remove current possible moves
-            dojo.query( '.wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFromHere' );
-            dojo.query( '.wsh_possibleMoveTo' ).removeClass( 'wsh_possibleMoveTo' ) ;
-            dojo.query(".wsh_token" ).forEach(  (node)=> { 
+            dojo.query(currentBoard).query( '.wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFrom' ).removeClass( 'wsh_possibleMoveFromHere' );
+            dojo.query(currentBoard).query( '.wsh_possibleMoveTo' ).removeClass( 'wsh_possibleMoveTo' ) ;
+            dojo.query(currentBoard).query(".wsh_token" ).forEach(  (node)=> { 
                 this.removeTooltip(node.id);
             })  ; 
             
@@ -278,7 +287,7 @@ function (dojo, declare) {
             
             for( let origin in possibleMoves )
             {
-                let nodes = dojo.query(".wsh_token[data_location='"+origin+"']");
+                let nodes = dojo.query(currentBoard).query(".wsh_token[data_location='"+origin+"']");
                 let node = nodes[0];
                 if(node !=undefined  ) {
                     dojo.addClass( node.id , 'wsh_possibleMoveFrom' ); 
@@ -292,8 +301,9 @@ function (dojo, declare) {
         updateBoard: function( board, animate ) {
             debug( "updateBoard",board, animate );
             
+            /* Don't destroy if we display an other board div 
             dojo.query( '.wsh_token' ).forEach( t => { dojo.destroy(t);  });
-            
+            */
             this.gamedatas.board = board;
             
             for( let i in board ){
@@ -304,12 +314,27 @@ function (dojo, declare) {
                 }
             }
             dojo.query( '.wsh_token' ).connect( 'onclick', this, 'onSelectMoveOrigin' );
+            //Hide by default
+            dojo.query( '.wsh_board_wrapper' ).addClass("wsh_no_display");
+            dojo.query( '#wsh_board_wrapper_'+this.round ).removeClass("wsh_no_display");
+            if(this.round>1) {
+                dojo.query('#wsh_button_display_round_1' ).removeClass("wsh_no_display");
+            }
             
         },
         
         addTokenOnBoard: function( id, color,coord, animate ) {
             debug( "addTokenOnBoard",id, color,coord, animate );
-            let divPlace = "wsh_cell_"+coord;
+            
+            let round = id.split("_")[0];
+            if(round == 't') { 
+                //Compatibility with first version 't_....'
+                round = 1;
+            }
+            let suffixRound = '_round_'+round;
+            
+            
+            let divPlace = "wsh_cell_"+coord+suffixRound;
             if($(divPlace) == null){
                 debug( "Cannot place token on not found cell ",divPlace, coord );
                 return;
@@ -328,11 +353,23 @@ function (dojo, declare) {
             ); 
             if(animate) this.animationBlink2Times(divPlace);
         },
-        rotateBoardPointOfView: function(){
+        hideRound:function(round){
+            debug( "hideRound",round );
+            
+            dojo.query('#wsh_button_display_round_'+round ).removeClass("wsh_no_display");
+            dojo.query("#wsh_board_wrapper_"+round).addClass("wsh_no_display");
+        },
+        displayBoard:function(round){
+            debug( "displayBoard",round );
+            
+            dojo.query('#wsh_button_display_round_'+round ).addClass("wsh_no_display");
+            dojo.query("#wsh_board_wrapper_"+round).removeClass("wsh_no_display");
+        },
+        rotateBoardPointOfView: function(round){
             debug( "rotateBoardPointOfView" );
             
-            this.animationRotate("wsh_board",180);
-            dojo.toggleClass($("wsh_board"), "wsh_rotation_done");
+            this.animationRotate("wsh_board_round_"+round,180);
+            dojo.toggleClass($("wsh_board_round_"+round), "wsh_rotation_done");
         },
         
         cleanChosenMoveToConfirm: function(){
@@ -361,7 +398,7 @@ function (dojo, declare) {
             dojo.stopEvent( evt );
 
             let token_id = evt.currentTarget.getAttribute("data_token_id") ;
-            //Now it's in cell id "wsh_cell_D5"
+            //Now it's in cell id "wsh_cell_D5_round_N"
             let dest= evt.currentTarget.id.split("_")[2];
 
             if( ! dojo.hasClass( evt.currentTarget.id, 'wsh_possibleMoveTo' ) )
@@ -403,6 +440,14 @@ function (dojo, declare) {
             
             this.ajaxcallwrapper( "playToken",{id: this.datasToConfirm.token_id, dest: this.datasToConfirm.dest} );
         },
+        onButtonBoard1: function(evt){
+            debug("onButtonBoard1",evt);
+            // Stop this event propagation
+            evt.preventDefault();
+            dojo.stopEvent( evt );
+            
+            dojo.query("#wsh_board_wrapper_1").toggleClass("wsh_no_display");
+        },
         
         /**
         Toggle display of possible moves from this place
@@ -441,13 +486,14 @@ function (dojo, declare) {
             for( let i in moves )
             {
                 let target = moves[i];
-                let targetId = "wsh_cell_"+target;
+                let targetId = "wsh_cell_"+target+"_round_"+this.round;
                 if($(targetId) == null){
                     debug( "Cannot place move on not found cell ",targetId, target );
                     continue;
                 }
                 dojo.addClass( targetId , 'wsh_possibleMoveTo' ); 
                 dojo.attr(targetId, "data_token_id", token_id);
+                //TODO JSA CLEAN data_token_id ?
                 
                 //TODO JSA see how to display this tooltip without adding a "click" event listener...
                 //this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
@@ -502,6 +548,8 @@ function (dojo, declare) {
                 debug("update player panel color :",notif.args.wolf_player_id);
                 a.style.color = "#"+this.gamedatas.constants.WOLF_COLOR;
             });
+            
+            this.round = notif.args.nb;
         },
         
         notif_newBoard: function( notif )
@@ -510,12 +558,13 @@ function (dojo, declare) {
             
             if(notif.args.round % 2 ==0){
                 //reverse Point of view on board on even rounds (only round 2 for now) 
-                this.rotateBoardPointOfView();
+                this.rotateBoardPointOfView(notif.args.round);
             }
             
             // reset board
             this.updateBoard(notif.args.board,true);
             this.updatePossibleMoves(this.allPossibleMoves);
+            this.hideRound(notif.args.round -1 );
         },
         
         notif_endRound: function( notif )
@@ -533,9 +582,9 @@ function (dojo, declare) {
             
             //Animation to move existing token to dest :
             let tokenDivId = tokenId;
-            let destinationDivId ="wsh_cell_"+destination;
+            let destinationDivId ="wsh_cell_"+destination+"_round_"+notif.args.round;
             this.attachToNewParentNoDestroy(tokenDivId, destinationDivId);
-            if( $("wsh_board").classList.contains( "wsh_rotation_done") ){
+            if( $("wsh_board_round_"+this.round).classList.contains( "wsh_rotation_done") ){
                 //To avoid strange slides starting position after computation
                 $(tokenDivId).style.left = (0 - $(tokenDivId).style.left.replace("px", "") ) +"px";
                 $(tokenDivId).style.top = (0 - $(tokenDivId).style.top.replace("px", "") ) +"px";

@@ -133,7 +133,7 @@
     text-align: center
 }
  
-#wsh_board {
+#wsh_board_round_1, #wsh_board_round_2 {
     border: 8px outset #630;
     display: inline-block;
     margin: calc(0.5*var(--wsh_cell_size));
@@ -264,6 +264,11 @@
     these 2 classes should not happen at the same time except with zombie
     */
     outline: 3px solid white;
+}
+
+
+.wsh_no_display{
+    display: none !important;
 }
 
 /*** FIX BGA 3D mode clicks : **/

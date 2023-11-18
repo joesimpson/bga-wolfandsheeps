@@ -184,6 +184,7 @@ class WolfAndSheeps extends Table
         
         //May be empty in first few seconds => added in argPlayerTurn because board is not init before new round
         $result['board'] = self::getObjectListFromDB(   self::getSQLSelectTOKEN() );
+        $result['round'] = $this->getCurrentRound();
   
         $result['constants'] = array( 
             "TOKEN_STATE_MOVED" => TOKEN_STATE_MOVED,
@@ -209,8 +210,9 @@ class WolfAndSheeps extends Table
         $round = $this->getCurrentRound();
         $maxRound = $this->getMaxRound();
         
+        $previousRoundProgress = 0;
         //Previous round progress : 0 on round 1/1, 0 on round 1/2,  1/2 on round 2
-        $previousRoundProgress = ($round -1) / $maxRound *100; 
+        if($maxRound >0) $previousRoundProgress = ($round -1) / $maxRound *100; 
         
         //Each turn Black player MUST advance a pawn on a line : it means each of its 4 pawns can move a maximum of 7 times (LINE_MAX-1).
         $LINE_MAX = self::get_LINE_MAX();
@@ -254,26 +256,27 @@ class WolfAndSheeps extends Table
     /**
     Init DataBase
     */
-    function initBoard($boardsize){
+    function initBoard($boardsize,$round){
         try {
-            self::DbQuery("DELETE FROM token" );
+            //Don't delete tokens, we will keep them with the round indicator
+            //self::DbQuery("DELETE FROM token" );
             
             // INIT Board with tokens starting positions : no other tokens will be used in the game
             $sql = "INSERT INTO token (token_key,token_location,token_state) VALUES ";
             $sql_values = array();
             if($boardsize == 10){
-                $sql_values[] = "('t_".SHEEP_COLOR."_1','E1',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_1','B10',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_2','D10',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_3','F10',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_4','H10',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_5','J10',0)";
+                $sql_values[] = "('".$round."_".SHEEP_COLOR."_1','E1',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_1','B10',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_2','D10',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_3','F10',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_4','H10',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_5','J10',0)";
             } else { // Default size 8
-                $sql_values[] = "('t_".SHEEP_COLOR."_1','E1',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_1','B8',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_2','D8',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_3','F8',0)";
-                $sql_values[] = "('t_".WOLF_COLOR."_4','H8',0)";
+                $sql_values[] = "('".$round."_".SHEEP_COLOR."_1','E1',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_1','B8',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_2','D8',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_3','F8',0)";
+                $sql_values[] = "('".$round."_".WOLF_COLOR."_4','H8',0)";
             }
             $sql .= implode( $sql_values, ',' );
             self::DbQuery( $sql );
@@ -333,6 +336,7 @@ class WolfAndSheeps extends Table
 
     //////////// Database Utility functions - BEGIN -----------------------------------
     function getSQLSelectTOKEN() { return "SELECT token_key 'key', token_location location, token_state state, 
+                    SUBSTRING(token_key FROM 1 FOR 1) round,
                     SUBSTRING(token_key FROM 3 FOR 6) color,
                     SUBSTRING(token_location FROM 1 FOR 1) coord_col,
                     SUBSTRING(token_location FROM 2 FOR 2) coord_row 
@@ -348,16 +352,16 @@ class WolfAndSheeps extends Table
     /**
     Return token on the specied location if it exists
     */
-    function dbGetTokenOnLocation($token_location){
-        $sql = self::getSQLSelectTOKEN()." WHERE token_location='$token_location'" ;
+    function dbGetTokenOnLocation($token_location,$round){
+        $sql = "SELECT * FROM (".self::getSQLSelectTOKEN().") subquery WHERE location='$token_location' AND round = '$round' " ;
         return self::getObjectFromDB( $sql ); 
     }
     
     /**
     return all tokens of this color
     */
-    function dbGetPlayerTokens($player_color){
-        $sql = "SELECT * FROM (".self::getSQLSelectTOKEN().") subquery WHERE color = '$player_color'" ;
+    function dbGetPlayerTokens($player_color,$round){
+        $sql = "SELECT * FROM (".self::getSQLSelectTOKEN().") subquery WHERE color = '$player_color' AND round = '$round' " ;
         return self::getObjectListFromDB( $sql ); 
     }
      
@@ -401,7 +405,7 @@ class WolfAndSheeps extends Table
     
         //  LOOP ON player TOKENS
         $color = self::getPlayerColorById( $player_id );
-        $tokens = $this->dbGetPlayerTokens($color );
+        $tokens = $this->dbGetPlayerTokens($color, $this->getCurrentRound() );
        
         //$this->dump("getPossibleMoves($player_id ) color $color:", $tokens); // NOI18N 
         
@@ -486,7 +490,8 @@ class WolfAndSheeps extends Table
     {
         $nextPos = $this->getNextPosition($origin_location, $dRow,$dCol);
         if(!isset($nextPos)) return;
-        $existingToken = $this->dbGetTokenOnLocation($nextPos);
+        $round = $this->getCurrentRound();
+        $existingToken = $this->dbGetTokenOnLocation($nextPos, $round);
         //Check position is EMPTY !!!!!
         if($existingToken) return;
         
@@ -558,7 +563,7 @@ class WolfAndSheeps extends Table
     function isPossibleToReachPositionByWolves($targetLocationString){
         $isPossible = array();
         
-        $wolves = $this->dbGetPlayerTokens(WOLF_COLOR );
+        $wolves = $this->dbGetPlayerTokens(WOLF_COLOR, $this->getCurrentRound() );
         foreach($wolves as $wolf){
             if($this->isPossibleToReachPositionByWolf($targetLocationString,$wolf)){
                 $isPossible[] = $wolf['key'];
@@ -692,6 +697,7 @@ class WolfAndSheeps extends Table
             'tokenId' => $tokenId,
             'origin' => $token_origin, 
             'dest' => $dest,
+            'round' => $round,
         ) );
           
         //----------------------------------------------------------------------------
@@ -716,6 +722,7 @@ class WolfAndSheeps extends Table
         self::trace("argPlayerTurn() : ".($player_id));        
         return array( 'possibleMoves' => self::getPossibleMoves($player_id),
             'board' => self::getObjectListFromDB(   self::getSQLSelectTOKEN() ),
+            'round' => $this->getCurrentRound(),
         );
     }
 
@@ -771,7 +778,7 @@ class WolfAndSheeps extends Table
             
         }
         
-        $this->initBoard(self::get_LINE_MAX());
+        $this->initBoard(self::get_LINE_MAX(),$round);
         
         self::notifyAllPlayers( "newBoard", '', array( 
                 'round' => $round,
@@ -790,7 +797,7 @@ class WolfAndSheeps extends Table
         
         $round = $this->getCurrentRound();
         
-        $sheepToken = $this->dbGetToken("t_".SHEEP_COLOR."_1");
+        $sheepToken = $this->dbGetToken($round."_".SHEEP_COLOR."_1");
             
         //CHECK IF SHEEP IS ON the opposite line (row == MAX row) => Sheep wins
         if($sheepToken["coord_row"] == self::get_LINE_MAX()){
@@ -980,25 +987,26 @@ class WolfAndSheeps extends Table
         // For example, if the game was running with a release of your game named "140430-1345",
         // $from_version is equal to 1404301345
         
-        // Example:
-//        if( $from_version <= 1404301345 )
-//        {
-//            // ! important ! Use DBPREFIX_<table_name> for all tables
-//
-//            $sql = "ALTER TABLE DBPREFIX_xxxxxxx ....";
-//            self::applyDbUpgradeToAllDB( $sql );
-//        }
-//        if( $from_version <= 1405061421 )
-//        {
-//            // ! important ! Use DBPREFIX_<table_name> for all tables
-//
-//            $sql = "CREATE TABLE DBPREFIX_xxxxxxx ....";
-//            self::applyDbUpgradeToAllDB( $sql );
-//        }
-//        // Please add your future database scheme changes here
-//
-//
-
+        if( $from_version <= 2311131948 ){
+            
+            //ADD round number as 1 for old games :
+            $result = self::getUniqueValueFromDB("SELECT global_value FROM `global` where global_id='20'");
+            if (empty($result)) {
+                self::applyDbUpgradeToAllDB("INSERT INTO DBPREFIX_global (`global_id`, `global_value`) VALUES ('20', '1'); ");
+            }
+            $result = self::getUniqueValueFromDB("SELECT global_value FROM `global` where global_id='21'");
+            if (empty($result)){
+                self::applyDbUpgradeToAllDB("INSERT INTO DBPREFIX_global (`global_id`, `global_value`) VALUES ('21', '1'); ");
+            } 
+            
+            //replace old 't' with round '1' in token key
+            self::applyDbUpgradeToAllDB("UPDATE DBPREFIX_token SET `token_key` = '1_ffffff_1' WHERE `token_key` = 't_ffffff_1'");
+            self::applyDbUpgradeToAllDB("UPDATE DBPREFIX_token SET `token_key` = '1_000000_1' WHERE `token_key` = 't_000000_1'");
+            self::applyDbUpgradeToAllDB("UPDATE DBPREFIX_token SET `token_key` = '1_000000_2' WHERE `token_key` = 't_000000_2'");
+            self::applyDbUpgradeToAllDB("UPDATE DBPREFIX_token SET `token_key` = '1_000000_3' WHERE `token_key` = 't_000000_3'");
+            self::applyDbUpgradeToAllDB("UPDATE DBPREFIX_token SET `token_key` = '1_000000_4' WHERE `token_key` = 't_000000_4'");
+            self::applyDbUpgradeToAllDB("UPDATE DBPREFIX_token SET `token_key` = '1_000000_5' WHERE `token_key` = 't_000000_5'");
+        }
 
     }    
 }
