@@ -524,6 +524,7 @@ function (dojo, declare) {
             this.notifqueue.setSynchronous( 'endRound',5000 );
             dojo.subscribe( 'newRound', this, "notif_newRound" );
             dojo.subscribe( 'newBoard', this, "notif_newBoard" );
+            this.notifqueue.setSynchronous( 'autoPlay',1000 );
             dojo.subscribe( 'tokenPlayed', this, "notif_tokenPlayed" );
             dojo.subscribe( 'sheepWins', this, "notif_sheepWins" );
             dojo.subscribe( 'sheepWinsUnstoppable', this, "notif_sheepWinsUnstoppable" );

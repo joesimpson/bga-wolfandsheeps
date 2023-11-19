@@ -683,6 +683,27 @@ class WolfAndSheeps extends Table
         return self::getCurrentPlayerColor() == SHEEP_COLOR;
     }
     
+    function checkAutoPlay(){
+        self::trace("checkAutoPlay()...");
+        
+        $round = $this->getCurrentRound();
+        $player_id = self::getActivePlayerId();
+        $possibleMoves = self::getPossibleMoves( $player_id );
+        if( count( $possibleMoves ) == 1 )
+        { //ONLY 1 ORIGIN
+            $origin = array_key_first($possibleMoves);
+            if( count( $possibleMoves[$origin] ) == 1 )
+            {   //ONLY 1 DESTINATION
+                $dest = $possibleMoves[$origin][0];
+                $token = $this->dbGetTokenOnLocation($origin, $round);
+                $tokenId = $token['key'];
+                self::trace("checkAutoPlay() auto move because only 1 possible move for $tokenId : $origin => $dest");
+                self::notifyAllPlayers( "autoPlay", '', array() );
+                $this->playToken($tokenId, $dest, false );
+            }
+        }
+        
+    }
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 //////////// 
@@ -696,10 +717,10 @@ class WolfAndSheeps extends Table
     /**
       Player choose a token and wants to move it to "dest"
     */
-    public function playToken($tokenId, $dest)
+    public function playToken($tokenId, $dest, $doCheck = true)
     {
-        $this->trace("playToken($tokenId, $dest)");
-        self::checkAction( 'playToken' ); 
+        $this->trace("playToken($tokenId, $dest, $doCheck )");
+        if($doCheck) self::checkAction( 'playToken' ); 
         
         $player_id = self::getActivePlayerId();
         $token = $this->dbGetToken($tokenId);
@@ -835,6 +856,7 @@ class WolfAndSheeps extends Table
     
     function stNextPlayer()
     {
+        self::trace("stNextPlayer()");
         // Active next player
         $player_id = self::activeNextPlayer();
 
@@ -869,6 +891,8 @@ class WolfAndSheeps extends Table
         // This player can play. Give them some extra time
         self::giveExtraTime( $player_id );
         $this->gamestate->nextState( 'nextTurn' );
+        
+        $this->checkAutoPlay();
     }
 
     function stEndRound()
