@@ -498,6 +498,10 @@ function (dojo, declare) {
             
             dojo.addClass( token_id,'wsh_possibleMoveFromHere' ); 
             
+            dojo.query( '.wsh_cell' ).forEach( (t) => {
+                    //Clean attribute from previous selection
+                    dojo.removeAttr(t.id, "data_token_id");
+                } );
             this.displayedPossibleMovesOrigin = origin;
             let moves = this.allPossibleMoves[origin];
             for( let i in moves )
@@ -510,7 +514,6 @@ function (dojo, declare) {
                 }
                 dojo.addClass( targetId , 'wsh_possibleMoveTo' ); 
                 dojo.attr(targetId, "data_token_id", token_id);
-                //TODO JSA CLEAN data_token_id ?
                 
                 //TODO JSA see how to display this tooltip without adding a "click" event listener...
                 //this.addTooltipToClass( 'wsh_possibleMoveTo', '', _('You can move TO this place') );
