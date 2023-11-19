@@ -646,6 +646,9 @@ class WolfAndSheeps extends Table
                 $winner_id = $player['player_id'];
                 $winner_name = $player['player_name'];
             }
+            else {
+                $looser_id = $player['player_id'];
+            }
         }
         $this->dbIncScore($winner_id, WINNER_SCORE);
         //Tie breaker score :
@@ -663,6 +666,9 @@ class WolfAndSheeps extends Table
         ) );
         
         self::setGameStateValue( "wsh_victory_type_$round", $victory_type );
+        
+        self::setStat(1,"player_result_round$round",$winner_id);
+        self::setStat(0,"player_result_round$round",$looser_id);
         
         // Go to end of the game
         $this->gamestate->nextState( 'endRound' );

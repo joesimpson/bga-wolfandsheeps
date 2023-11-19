@@ -64,6 +64,9 @@ $stats_type = array(
         "player_side" => array("id"=> 10,
                     "name" => totranslate("Round 1 : Played side"),
                     "type" => "int" ),
+        "player_result_round1" => array("id"=> 11,
+                    "name" => totranslate("Round 1 : Player result"),
+                    "type" => "int" ),
                     
         "moves_forward" => array("id"=> 20,
                     "name" => totranslate("Round 1 : Moves forward"),
@@ -75,6 +78,9 @@ $stats_type = array(
 
         "player_side_round2" => array("id"=> 50,
                     "name" => totranslate("Round 2 : Played side"),
+                    "type" => "int" ),
+        "player_result_round2" => array("id"=> 51,
+                    "name" => totranslate("Round 2 : Player result"),
                     "type" => "int" ),
                     
         "moves_forward_round2" => array("id"=> 60,
@@ -91,9 +97,19 @@ $stats_type = array(
 			0 => totranslate("White"),
 			1 => totranslate("Black"), 
 		),
+		11 => array(
+            //Maybe no need to display 'looser'
+			0 => '',
+			1 => totranslate("Winner"), 
+		),
         50 => array( 
 			0 => totranslate("White"),
 			1 => totranslate("Black"), 
+		),
+		51 => array(
+            //Maybe no need to display 'looser'
+			0 => '',
+			1 => totranslate("Winner"), 
 		),
 	)
 
