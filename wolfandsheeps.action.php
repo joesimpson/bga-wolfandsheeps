@@ -38,12 +38,20 @@
             self::trace( "Complete reinitialization of board game" );
       }
   	} 
-  	
+    
+    /* Check Helper, not a real action */
+    private function checkVersion()
+    {
+        $clientVersion = (int) self::getArg('version', AT_int, false);
+        $this->game->checkVersion($clientVersion);
+    }
+    
   	// defines your action entry points there
  
     public function playToken()
     {
-        self::setAjaxMode();     
+        self::setAjaxMode();
+        self::checkVersion();      
 
         $tokenId = self::getArg( "id", AT_alphanum, true );
         $dest = self::getArg( "dest", AT_alphanum, true );

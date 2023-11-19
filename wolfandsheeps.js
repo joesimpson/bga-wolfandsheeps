@@ -190,9 +190,26 @@ function (dojo, declare) {
                 args = {};
             }
             args.lock = true;
+            args.version = this.gamedatas.version;
 
             if (this.checkAction(action)) {
-                this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, (result) => { }, handler);
+                this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, 
+                (result) => { }, 
+                (error, errorMsg, errorCode) => {
+                    if (error && errorMsg == "!!!checkVersion") {
+                        this.infoDialog(
+                            _("A new version of this game is now available"),
+                            _("Reload required"),
+                            () => {
+                                window.location.reload(true);
+                            },
+                            true
+                        );
+                    } else {
+                        if (handler) handler(error, errorMsg, errorCode);
+                    }
+                }
+            );
             }
         },
         

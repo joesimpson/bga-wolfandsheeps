@@ -195,6 +195,7 @@ class WolfAndSheeps extends Table
             "SHEEP_COLOR" => SHEEP_COLOR,
             "WOLF_COLOR" => WOLF_COLOR,
         );
+        $result['version'] = intval($this->gamestate->table_globals[300]);//GAMESTATE_GAMEVERSION
         
         return $result;
     }
@@ -713,7 +714,20 @@ class WolfAndSheeps extends Table
         (note: each method below must match an input method in wolfandsheeps.action.php)
     */
 
-    
+    public function checkVersion(int $clientVersion): void
+    {
+        $this->trace("checkVersion($clientVersion)");
+        if ($clientVersion != intval($this->gamestate->table_globals[300])) {
+            if($clientVersion == 0){ //old Client side version
+                // Simplest way is to throw a "visible" exception
+                // It's ugly but comes with a "click here" link to refresh
+                throw new BgaVisibleSystemException(self::_("A new version of this game is now available."));
+            }
+
+            // For something prettier, throw a "user" exception and handle in JS
+            throw new BgaUserException('!!!checkVersion');
+        }
+    }
     /**
       Player choose a token and wants to move it to "dest"
     */
