@@ -83,6 +83,8 @@
     text-shadow: 1px 0px 1px white, 0px 1px 1px white,-1px 0px 1px white,0px -1px 1px white;
 }
 /** Add a BLACK shadow behind player name in case of bright colors like white/orange*/
+.wsh_theme_dark .player_board_inner>.player-name>a.wsh_playername_ffffff, /* For round update */
+.wsh_theme_standard .player_board_inner>.player-name>a.wsh_playername_ffffff, /* For round update */
 .wsh_theme_dark .player_board_inner>.player-name>a[style='color: #ffffff'],
 .wsh_theme_standard .player_board_inner>.player-name>a[style='color: #ffffff']
 {

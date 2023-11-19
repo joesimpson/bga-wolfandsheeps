@@ -544,10 +544,12 @@ function (dojo, declare) {
             dojo.query ("#overall_player_board_"+notif.args.sheep_player_id+" #player_name_"+notif.args.sheep_player_id+" a:first-child" ).forEach( a => {
                 debug("update player panel color :",notif.args.sheep_player_id);
                 a.style.color = "#"+this.gamedatas.constants.SHEEP_COLOR;
+                a.classList.add("wsh_playername_"+this.gamedatas.constants.SHEEP_COLOR);
             });
             dojo.query( "#overall_player_board_"+notif.args.wolf_player_id+" #player_name_"+notif.args.wolf_player_id+" a:first-child" ).forEach( a => {
                 debug("update player panel color :",notif.args.wolf_player_id);
                 a.style.color = "#"+this.gamedatas.constants.WOLF_COLOR;
+                a.classList.add("wsh_playername_"+this.gamedatas.constants.WOLF_COLOR);
             });
             
             this.round = notif.args.nb;
