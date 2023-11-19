@@ -80,13 +80,13 @@
 }
 /** Add a WHITE shadow behind player name in case of dark color (black)*/
 .wsh_theme_dark .player_board_inner>.player-name>a:first-child{
-    text-shadow: 1px 1px 5px white;
+    text-shadow: 1px 0px 1px white, 0px 1px 1px white,-1px 0px 1px white,0px -1px 1px white;
 }
 /** Add a BLACK shadow behind player name in case of bright colors like white/orange*/
 .wsh_theme_dark .player_board_inner>.player-name>a[style='color: #ffffff'],
 .wsh_theme_standard .player_board_inner>.player-name>a[style='color: #ffffff']
 {
-    text-shadow: 1px 1px 5px black;
+    text-shadow: 1px 0px 1px black, 0px 1px 1px black,-1px 0px 1px black,0px -1px 1px black;
 }
 
 /* ------------------------------------------------------------------------------*/
@@ -96,6 +96,7 @@
 .wsh_playername_wrapper_ffffff .playername{
     color: white !important;
     background-color: #bbbbbb !important;
+    text-shadow: 1px 0px 1px black, 0px 1px 1px black,-1px 0px 1px black,0px -1px 1px black;
 }
 .wsh_playername_wrapper_000000, /* Different in replay ? */
 .wsh_playername_wrapper_000000 .playername{
