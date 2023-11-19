@@ -49,7 +49,10 @@ class WolfAndSheeps extends Table
         
         self::initGameStateLabels( array( 
             "wsh_line_max" => 10,
-            "wsh_victory_type" => 11,
+            /** Round 1 victory */
+            "wsh_victory_type_1" => 11,
+            /** Round 2 victory */
+            "wsh_victory_type_2" => 12,
             "wsh_round_max" => 20,
             "wsh_round_number" => 21,
             
@@ -131,7 +134,8 @@ class WolfAndSheeps extends Table
         self::setGameStateInitialValue( 'wsh_line_max', $boardsize );
         self::setGameStateInitialValue( 'wsh_round_max', $roundMax );
         self::setGameStateInitialValue( 'wsh_round_number', 0 );
-        self::setGameStateInitialValue( 'wsh_victory_type', 0 );
+        self::setGameStateInitialValue( 'wsh_victory_type_1', 0 );
+        self::setGameStateInitialValue( 'wsh_victory_type_2', 0 );
                 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -629,6 +633,41 @@ class WolfAndSheeps extends Table
         return substr($location,1);
     }
     
+    /**
+    Set Winner score + notify winner
+    Then end round
+    */
+    function winAndEndRound($round,$winner_color, $notif_id, $notif_text, $victory_type){
+        self::trace("winAndEndRound($round,$winner_color, $notif_id, $notif_text, $victory_type)...");
+        
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player) {
+            if($player['player_color'] == $winner_color ) { 
+                $winner_id = $player['player_id'];
+                $winner_name = $player['player_name'];
+            }
+        }
+        $this->dbIncScore($winner_id, WINNER_SCORE);
+        //Tie breaker score :
+        $nbMoves = $this->getCurrentRoundMoves($winner_id);
+        self::trace("winAndEndRound() nbMoves = $nbMoves");
+        //We will consider the lowest number of moves as tie, so count negative :
+        $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
+        
+        self::notifyAllPlayers( $notif_id, $notif_text, array(
+            'preserve' => [ 'color' ],
+            'player_id' => $winner_id,
+            'player_name' => $winner_name,
+            'winner_score' => WINNER_SCORE,
+            'color' =>  $winner_color, 
+        ) );
+        
+        self::setGameStateValue( "wsh_victory_type_$round", $victory_type );
+        
+        // Go to end of the game
+        $this->gamestate->nextState( 'endRound' );
+        return;
+    }
     
     /**
     Return true if current player is the "Sheep" (== the white player)
@@ -801,102 +840,23 @@ class WolfAndSheeps extends Table
             
         //CHECK IF SHEEP IS ON the opposite line (row == MAX row) => Sheep wins
         if($sheepToken["coord_row"] == self::get_LINE_MAX()){
-            $winner_color = SHEEP_COLOR;
-            
-            $players = $this->loadPlayersBasicInfos();
-            foreach ($players as $player) {
-                if($player['player_color'] == $winner_color ) { 
-                    $winner_id = $player['player_id'];
-                    $winner_name = $player['player_name'];
-                }
-            }
-            //TODO JSA FACTORIZE
-            $this->dbIncScore($winner_id, WINNER_SCORE);
-            //Tie breaker score :
-            $nbMoves = $this->getCurrentRoundMoves($winner_id);
-            self::trace("stNextPlayer() nbMoves = $nbMoves");
-            //We will consider the lowest number of moves as tie, so count negative :
-            $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
-            
-            self::notifyAllPlayers( "sheepWins", clienttranslate( '${player_name} wins by reaching the other side of the board' ), array(
-                'preserve' => [ 'color' ],
-                'player_id' => $winner_id,
-                'player_name' => $winner_name,
-                'winner_score' => WINNER_SCORE,
-                'color' =>  $winner_color, 
-            ) );
-            
-            self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_SHEEP_REACH );
-            
-            // Go to end of the game
-            $this->gamestate->nextState( 'endRound' );
+            $this->winAndEndRound($round,SHEEP_COLOR, "sheepWins", clienttranslate( '${player_name} wins by reaching the other side of the board' ), VICTORY_TYPE_SHEEP_REACH);
             return;
         }
 
-        // TODO ? check if we can check it 1 turn before to avoid a useless turn waiting ? Be careful with this idea because computing future possible moves now doesn't consider the next player turn action !
         // Can this player play?
         $possibleMoves = self::getPossibleMoves( $player_id );
         if( count( $possibleMoves ) == 0 )
         {
-            
-            //add 1 score to other player :
-            $players = $this->loadPlayersBasicInfos();
-            foreach ($players as $player) {
-                if($player['player_id'] != $player_id ) { //ONLY 2 players here so let's find any other
-                    $winner_id = $player['player_id'];
-                    $winner_name = $player['player_name'];
-                    $winner_color = $player['player_color'];
-                }
-            }
-            $this->dbIncScore($winner_id, WINNER_SCORE);
-            //Tie breaker score :
-            $nbMoves = $this->getCurrentRoundMoves($winner_id);
-            //We will consider the lowest number of moves as tie, so count negative :
-            $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
-            
-            self::notifyAllPlayers( "winByBlocking", clienttranslate( '${player_name} wins because the other player is blocked' ), array(
-                'preserve' => [ 'color' ],
-                'player_id' => $winner_id,
-                'player_name' => $winner_name,
-                'winner_score' => WINNER_SCORE,
-                'color' =>  $winner_color, 
-            ) );
-            
-            self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_PLAYER_BLOCKED );
-            
-            // Go to end of the game
-            $this->gamestate->nextState( 'endRound' );
+            //winner is the other player :            
+            $looser_color = $this->getPlayerColorById($player_id );
+            $winner_color = ($looser_color == SHEEP_COLOR ) ? WOLF_COLOR : SHEEP_COLOR; 
+            $this->winAndEndRound($round,$winner_color, "winByBlocking", clienttranslate( '${player_name} wins because the other player is blocked' ), VICTORY_TYPE_PLAYER_BLOCKED);
             return;
         }
         
         if( $this->isSheepImpossibleToBlock($sheepToken)){
-            $winner_color = SHEEP_COLOR;
-            
-            $players = $this->loadPlayersBasicInfos();
-            foreach ($players as $player) {
-                if($player['player_color'] == $winner_color ) { 
-                    $winner_id = $player['player_id'];
-                    $winner_name = $player['player_name'];
-                }
-            }
-            $this->dbIncScore($winner_id, WINNER_SCORE);
-            //Tie breaker score :
-            $nbMoves = $this->getCurrentRoundMoves($winner_id);
-            //We will consider the lowest number of moves as tie, so count negative :
-            $this->dbIncreasePlayerScoreAux($winner_id, 0 - $nbMoves);
-            
-            self::notifyAllPlayers( "sheepWinsUnstoppable", clienttranslate( '${player_name} wins because the other player cannot block him anymore' ), array(
-                'preserve' => [ 'color' ],
-                'player_id' => $winner_id,
-                'player_name' => $winner_name,
-                'winner_score' => WINNER_SCORE,
-                'color' =>  $winner_color, 
-            ) );
-            
-            self::setGameStateValue( 'wsh_victory_type', VICTORY_TYPE_SHEEP_FREE );
-            
-            // Go to end of the game
-            $this->gamestate->nextState( 'endRound' );
+            $this->winAndEndRound($round,SHEEP_COLOR, "sheepWinsUnstoppable", clienttranslate( '${player_name} wins because the other player cannot block him anymore' ), VICTORY_TYPE_SHEEP_FREE);
             return;
         }
         
