@@ -721,7 +721,7 @@ class WolfAndSheeps extends Table
             if($clientVersion == 0){ //old Client side version
                 // Simplest way is to throw a "visible" exception
                 // It's ugly but comes with a "click here" link to refresh
-                throw new BgaVisibleSystemException(self::_("A new version of this game is now available."));
+                throw new BgaVisibleSystemException(self::_("A new version of this game is now available"));
             }
 
             // For something prettier, throw a "user" exception and handle in JS
