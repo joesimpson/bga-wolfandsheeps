@@ -91,10 +91,13 @@
 
 /* ------------------------------------------------------------------------------*/
 /** Override BGA style for log player_name (need some Javascript too, because player_color will change on round 2 */
+
+.wsh_playername_wrapper_ffffff, /* Different in replay ? */
 .wsh_playername_wrapper_ffffff .playername{
     color: white !important;
     background-color: #bbbbbb !important;
 }
+.wsh_playername_wrapper_000000, /* Different in replay ? */
 .wsh_playername_wrapper_000000 .playername{
     color: black !important;
     background-color: white !important;
