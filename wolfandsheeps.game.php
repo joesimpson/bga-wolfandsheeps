@@ -283,7 +283,7 @@ class WolfAndSheeps extends Table
                 $sql_values[] = "('".$round."_".WOLF_COLOR."_3','F8',0)";
                 $sql_values[] = "('".$round."_".WOLF_COLOR."_4','H8',0)";
             }
-            $sql .= implode( $sql_values, ',' );
+            $sql .= implode( ',',$sql_values );
             self::DbQuery( $sql );
         
         } catch ( Exception $e ) {
