@@ -15,15 +15,6 @@ $gameinfos = array(
 // Name of the game in English (will serve as the basis for translation) 
 'game_name' => "Wolf and Sheep",
 
-// Game designer (or game designers, separated by commas)
-'designer' => '',       
-
-// Game artist (or game artists, separated by commas)
-'artist' => '',         
-
-// Year of FIRST publication of this game. Can be negative.
-'year' => 0,                 
-
 // Game publisher (use empty string if there is no publisher)
 'publisher' => '(Public Domain)',                     
 
@@ -89,18 +80,6 @@ $gameinfos = array(
 // NB: the default will be the first language in this list spoken by the player, so you should list them by popularity/preference.
 'language_dependency' => false,
 
-// Complexity of the game, from 0 (extremely simple) to 5 (extremely complex)
-'complexity' => 1,    
-
-// Luck of the game, from 0 (absolutely no luck in this game) to 5 (totally luck driven)
-'luck' => 0,    
-
-// Strategy of the game, from 0 (no strategy can be setup) to 5 (totally based on strategy)
-'strategy' => 4,    
-
-// Diplomacy of the game, from 0 (no interaction in this game) to 5 (totally based on interaction and discussion between players)
-'diplomacy' => 1,    
-
 // Colors attributed to players
 'player_colors' => array( "000000", "ffffff" ),
 
@@ -127,19 +106,6 @@ $gameinfos = array(
     //  maximum possible value: unlimited
     //  minimum possible value: 740
     'max' => null
-),
-
-// Game presentation
-// Short game presentation text that will appear on the game description page, structured as an array of paragraphs.
-// Each paragraph must be wrapped with totranslate() for translation and should not contain html (plain text without formatting).
-// A good length for this text is between 100 and 150 words (about 6 to 9 lines on a standard display)
-'presentation' => array(
-    totranslate("There are many alternate names: Fox and Hounds, Fox and Geese, Fox and Dogs, Wolf and Sheep, Hounds and Hare or Devil and Tailors."),
-    totranslate("The game is played on a chess board sized 8x8 starting with 4 black checkers (the wolves) on one side and a single white checker (the sheep) on the other side."),
-    totranslate("The wolves hunt the sheep. The sheep moves diagonally one field range forward or backward onto an empty adjacent square per turn. Wolves can only move diagonally one field forward onto an empty adjacent square."),
-    totranslate("There is no capturing by jumping and no stacking of checkers."),
-    totranslate("Sheep wins by reaching the other side of the board. Wolves win by blocking the sheep such that it cannot move anymore."),
-    totranslate("A simple game to teach children (as it is actually done in schools)."),
 ),
 
 //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
