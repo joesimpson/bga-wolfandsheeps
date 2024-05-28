@@ -29,8 +29,8 @@ $game_options = array(
     100 => array(
                 'name' => totranslate('Board size'),    
                 'values' => array(
-                            1 => array( 'name' => totranslate('Chess (8x8)'), 'description' => totranslate('classic chess board with 8 rows and 8 columns : 1 white token VS 4 black tokens')),
-                            2 => array( 'name' => totranslate('Checkers (10x10)'), 'description' => totranslate('classic checkers board with 10 rows and 10 columns : 1 white token VS 5 black tokens')),
+                            1 => array( 'name' => totranslate('Chess (8x8)'),'tmdisplay'=> totranslate('Chess (8x8)'), 'description' => totranslate('classic chess board with 8 rows and 8 columns : 1 white token VS 4 black tokens')),
+                            2 => array( 'name' => totranslate('Checkers (10x10)'),'tmdisplay'=> totranslate('Checkers (10x10)'), 'description' => totranslate('classic checkers board with 10 rows and 10 columns : 1 white token VS 5 black tokens')),
                         ),
                 'default' => 1
             ),
@@ -38,8 +38,8 @@ $game_options = array(
     101 => array(
                 'name' => totranslate('Duration'),    
                 'values' => array(
-                            1 => array( 'name' => totranslate('1 round'), 'description' => totranslate('Classic play')),
-                            2 => array( 'name' => totranslate('2 rounds'), 'description' => totranslate('Round 1 is classic, then switch played sides for round 2')),
+                            1 => array( 'name' => totranslate('1 round'),'tmdisplay'=> totranslate('1 round'), 'description' => totranslate('Classic play')),
+                            2 => array( 'name' => totranslate('2 rounds'),'tmdisplay'=> totranslate('2 rounds'), 'description' => totranslate('Round 1 is classic, then switch played sides for round 2')),
                         ),
                 'default' => 1
             ),
