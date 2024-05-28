@@ -184,6 +184,15 @@ function (dojo, declare) {
             mobile.offsetTop;//force re-flow
             return box;
         },
+        showMessage(msg, type) {
+            if (type == 'error') {
+              console.error(msg);
+              if (msg && msg.startsWith("!!!")) {
+                return; // suppress red banner and gamelog message
+              }
+            }
+            return this.inherited(arguments);
+        },
         ajaxcallwrapper: function(action, args, handler) {
             debug("ajaxcallwrapper()",action,args);
             if (!args) {
