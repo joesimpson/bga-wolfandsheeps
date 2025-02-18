@@ -74,6 +74,11 @@ function (dojo, declare) {
             
             dojo.query( '#wsh_button_display_round_1' ).connect( 'onclick', this, 'onButtonBoard1' );
             
+            if(this.round > 1){
+                //reverse Point of view on board 1 if we reload the page on later round
+                this.rotateBoardPointOfView(1);
+            }
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
