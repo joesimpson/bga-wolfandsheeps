@@ -56,6 +56,8 @@ class WolfAndSheeps extends Table
             "wsh_round_max" => 20,
             "wsh_round_number" => 21,
             
+            //"wsh_is_game_ended" => 30,
+            
             "variant_BoardSize" => 100,
             "variant_RoundNumber" => 101,
         ) );        
@@ -136,6 +138,7 @@ class WolfAndSheeps extends Table
         self::setGameStateInitialValue( 'wsh_round_number', 0 );
         self::setGameStateInitialValue( 'wsh_victory_type_1', 0 );
         self::setGameStateInitialValue( 'wsh_victory_type_2', 0 );
+        //self::setGameStateInitialValue( 'wsh_is_game_ended', 0 );
                 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -246,6 +249,11 @@ class WolfAndSheeps extends Table
         $minProgress = 50;
         $progress = $minProgress + $progress / (100 / (100 - $minProgress) );
         
+        if($this->isGameEnded()) {
+            //When game ends we should have 100%
+            $progress = 100;
+        }
+
         return $progress;
     }
 
@@ -309,6 +317,27 @@ class WolfAndSheeps extends Table
             $max = 1;
         }
         return $max;
+    }
+    
+    function isGameEnded(): bool{
+        //try{
+        //    $end = $this->getGameStateValue('wsh_is_game_ended');
+        //} catch ( Exception $e ) {
+        //    $this->trace("Error while reading new global 'wsh_is_game_ended'");
+        //    return false;
+        //}
+        //return $end == 1;
+        return $this->globals->get('wsh_is_game_end', false);
+    }
+    function setGameEnded(){
+        //try{
+        //    self::setGameStateValue( 'wsh_is_game_end', 1 );
+        //} catch ( Exception $e ) {
+        //    $this->trace("Error while writing new global 'wsh_is_game_ended'");
+        //    return;
+        //}
+        //NEW globals
+        $this->globals->set('wsh_is_game_end',true);
     }
     
     function getCurrentRoundMoves($player_id){
@@ -922,11 +951,19 @@ class WolfAndSheeps extends Table
             
         //CHECK round_number and end if >=MAX
         if($round >= $roundMax ){
+            $this->setGameEnded();
             $this->gamestate->nextState( 'endGame' );
             return;
         }
         
         $this->gamestate->nextState( 'newRound' );
+    }
+    
+    public function stPreEndOfGame()
+    {
+        self::trace("stPreEndOfGame()");
+        self::notifyAllPlayers('e','',[],);
+        $this->gamestate->nextState('next');
     }
     
 //////////////////////////////////////////////////////////////////////////////

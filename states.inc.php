@@ -105,9 +105,38 @@ $machinestates = array(
         "description" => clienttranslate('End round'),
         "type" => "game",
         "action" => "stEndRound",
-        "transitions" => array( "endGame" => 99, "newRound" => 5 )
+        "updateGameProgression" => true,    
+        "transitions" => array( "endGame" => 95, "newRound" => 5 )
     ),
    
+    95 => array(
+        "name" => "preEndOfGame",
+        "description" => '',
+        "type" => "game",
+        "action" => "stPreEndOfGame",
+        "updateGameProgression" => true,    
+        "transitions" => [ 
+            //"next" => 96,
+            "next" => 99,
+        ],
+    ),
+
+    //END GAME TESTING STATE
+    /*
+    96 => [
+        "name" => "playerGameEnd",
+        "description" => ('${actplayer} Game Over'),
+        "descriptionmyturn" => ('${you} Game Over'),
+        'type' => 'activeplayer',
+        "args" => "argPlayerTurn",
+        "possibleactions" => ["endGame"],
+        "transitions" => [
+            "loopback" => 96, 
+            "next" => 99,
+        ] 
+    ],
+    */
+
     // Final state.
     // Please do not modify (and do not overload action/args methods).
     99 => array(
